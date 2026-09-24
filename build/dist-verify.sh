@@ -10,6 +10,11 @@
 # Usage: dist-verify.sh <path/to/qudossl-community-X.Y.Z-src.tar.gz>
 set -euo pipefail
 
+# A developer's shell usually points these at an existing QudoSSL install. The
+# gate must judge the tarball's own install, so drop them: with OPENSSL_CONF
+# inherited, a missing config in the scratch prefix passes unnoticed.
+unset OPENSSL_CONF OPENSSL_MODULES
+
 TARBALL=${1:?usage: dist-verify.sh <tarball>}
 [ -f "$TARBALL" ] || { echo "dist-verify: no such tarball: $TARBALL" >&2; exit 1; }
 TARBALL=$(cd "$(dirname "$TARBALL")" && pwd)/$(basename "$TARBALL")
@@ -48,6 +53,11 @@ make -C "$SRC/build" all PREFIX="$PREFIX" \
 echo "==> installing to $PREFIX"
 make -C "$SRC/build" install_sw PREFIX="$PREFIX" >>"$WORK/build.log" 2>&1 \
     || { echo "dist-verify: install_sw failed — tail of $WORK/build.log:" >&2; tail -30 "$WORK/build.log" >&2; exit 1; }
+# install_sw installs no openssl.cnf, and install_fips only writes fipsmodule.cnf
+# beside it. Without this the prefix has no configuration at all and `openssl req`
+# below aborts before it can generate the test certificate.
+make -C "$SRC/openssl" install_ssldirs >>"$WORK/build.log" 2>&1 \
+    || { echo "dist-verify: install_ssldirs failed — tail of $WORK/build.log:" >&2; tail -30 "$WORK/build.log" >&2; exit 1; }
 
 echo "==> acceptance checks"
 check "openssl reports the upstream base version" "OpenSSL 3.5" "$("$PREFIX/bin/openssl" version 2>&1)"
@@ -64,7 +74,8 @@ fi
 
 echo "==> post-quantum handshake"
 ( cd "$WORK" && "$PREFIX/bin/openssl" req -x509 -new -noenc -newkey rsa:3072 \
-    -keyout s.key -out s.crt -days 2 -subj "/CN=localhost" >/dev/null 2>&1 )
+    -keyout s.key -out s.crt -days 2 -subj "/CN=localhost" >"$WORK/req.log" 2>&1 ) \
+    || { echo "dist-verify: could not generate the test certificate:" >&2; cat "$WORK/req.log" >&2; exit 1; }
 "$PREFIX/bin/openssl" s_server -accept "$PORT" -cert "$WORK/s.crt" -key "$WORK/s.key" \
     -www -quiet >/dev/null 2>&1 &
 SRV=$!
