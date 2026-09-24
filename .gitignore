@@ -34,3 +34,4 @@ local.mk
 
 # Claude Code write-tracking markers (empty dirs; preventive)
 .claude/
+dist/

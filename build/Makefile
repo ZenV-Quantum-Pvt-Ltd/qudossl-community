@@ -228,6 +228,53 @@ install-cli-name:
 	echo "==> CLI: openssl (binary) + qudossl (wrapper) installed in $$bindir"
 
 # ---- housekeeping -----------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Release artefacts. The tarball is cut from git HEAD — not the working tree —
+# so build output and local edits can never reach it, and the version comes
+# from the CLI wrapper so there is one place to bump.
+# ---------------------------------------------------------------------------
+DIST_VERSION := $(shell sed -n 's/^QUDO_PRODUCT_VERSION="\(.*\)"/\1/p' $(REPO_ROOT)/build/qudossl)
+DIST_NAME    := qudossl-community-$(DIST_VERSION)
+DIST_DIR     := $(REPO_ROOT)/dist
+SOURCE_EPOCH := $(shell git -C $(REPO_ROOT) log -1 --format=%ct 2>/dev/null || echo 0)
+
+.PHONY: dist dist-verify
+
+dist:
+	@test -n "$(DIST_VERSION)" || \
+	  { echo "dist: cannot read QUDO_PRODUCT_VERSION from build/qudossl" >&2; exit 1; }
+	@if tag=$$(git -C $(REPO_ROOT) describe --tags --exact-match 2>/dev/null); then \
+	  if [ "$$tag" != "$(DIST_NAME)" ]; then \
+	    echo "dist: HEAD tag '$$tag' != '$(DIST_NAME)' (from the wrapper's QUDO_PRODUCT_VERSION)" >&2; \
+	    exit 1; fi; \
+	else \
+	  echo "==> note: HEAD is untagged — building a SNAPSHOT (tag $(DIST_NAME) for a release)"; \
+	fi
+	@echo "==> staging $(DIST_NAME) from git HEAD"
+	@rm -rf "$(DIST_DIR)/$(DIST_NAME)" && mkdir -p "$(DIST_DIR)/$(DIST_NAME)"
+	git -C $(REPO_ROOT) archive --format=tar HEAD | tar -x -C "$(DIST_DIR)/$(DIST_NAME)"
+	@echo "==> normalising timestamps to the HEAD commit date"
+	@stamp=$$(perl -e '@t = gmtime($(SOURCE_EPOCH)); \
+	  printf "%04d%02d%02d%02d%02d.%02d", $$t[5]+1900, $$t[4]+1, $$t[3], $$t[2], $$t[1], $$t[0]'); \
+	TZ=UTC find "$(DIST_DIR)/$(DIST_NAME)" -exec touch -t "$$stamp" {} +
+	@echo "==> packing $(DIST_NAME)-src.tar.gz"
+	@if tar --version 2>/dev/null | grep -q GNU; then \
+	  tar --sort=name --owner=0 --group=0 --numeric-owner \
+	      -C "$(DIST_DIR)" -czf "$(DIST_DIR)/$(DIST_NAME)-src.tar.gz" "$(DIST_NAME)"; \
+	else \
+	  (cd "$(DIST_DIR)" && find "$(DIST_NAME)" | sort | \
+	    COPYFILE_DISABLE=1 tar -czf "$(DIST_NAME)-src.tar.gz" --uid 0 --gid 0 -n -T -); \
+	fi
+	@(cd "$(DIST_DIR)" && shasum -a 256 "$(DIST_NAME)-src.tar.gz" > "$(DIST_NAME)-src.tar.gz.sha256")
+	@rm -rf "$(DIST_DIR)/$(DIST_NAME)"
+	@echo "==> $(DIST_DIR)/$(DIST_NAME)-src.tar.gz"
+	@cat "$(DIST_DIR)/$(DIST_NAME)-src.tar.gz.sha256"
+
+# Build, install and acceptance-check FROM THE TARBALL — the artefact a user
+# receives — so a release cannot pass on something only the working tree has.
+dist-verify:
+	@bash "$(REPO_ROOT)/build/dist-verify.sh" "$(DIST_DIR)/$(DIST_NAME)-src.tar.gz"
+
 clean:
 	-$(MAKE) -C $(OPENSSL_DIR) clean 2>/dev/null
 	rm -rf $(QUDO_PQC_BUILD)
