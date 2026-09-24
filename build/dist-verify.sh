@@ -37,7 +37,12 @@ SRC="$WORK/qudossl-community-$VERSION"
 [ -d "$SRC" ] || { echo "dist-verify: tarball did not unpack to qudossl-community-$VERSION/" >&2; exit 1; }
 
 echo "==> building from the tarball (both stages)"
-make -C "$SRC/build" all PREFIX="$PREFIX" >"$WORK/build.log" 2>&1 \
+# Same command the README gives a user. The RPATH is not cosmetic: QudoSSL
+# carries the same SONAMEs as a distribution's OpenSSL, so without it the
+# installed CLI binds /lib/.../libssl.so.3 and dies with `OPENSSL_3.5.0' not
+# found. Verifying without it would test a build no user is told to make.
+make -C "$SRC/build" all PREFIX="$PREFIX" \
+    OPENSSL_EXTRA_FLAGS="-Wl,-rpath,$PREFIX/lib" >"$WORK/build.log" 2>&1 \
     || { echo "dist-verify: build failed — tail of $WORK/build.log:" >&2; tail -30 "$WORK/build.log" >&2; exit 1; }
 
 echo "==> installing to $PREFIX"
