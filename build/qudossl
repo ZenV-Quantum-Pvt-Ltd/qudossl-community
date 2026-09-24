@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# qudossl — the QudoSSL CLI.
+#
+# A thin banner-and-delegate wrapper around the OpenSSL command-line app that
+# QudoSSL builds. Every invocation is passed through unchanged; the only added
+# behaviour is a product banner on `version` and on a bare invocation.
+#
+# Why a wrapper and not a renamed binary:
+#
+#   The version string the app prints comes from OPENSSL_VERSION_TEXT in
+#   include/openssl/opensslv.h.in, which IS listed in
+#   providers/fips.module.sources -- editing it enters the re-certification
+#   flow in docs/branching.md. Printing the banner from apps/version.c instead
+#   was tried and rejected: opt_init() re-runs opt_progname(argv[0]) and
+#   overwrites the invoked name with the sub-command, so recovering "qudossl"
+#   needs a global threaded through apps.h + openssl.c + version.c -- three
+#   more upstream files patched for a cosmetic string.
+#
+#   This wrapper achieves the same result with zero upstream changes, and it
+#   scopes the banner correctly for free: `openssl version` is the untouched
+#   binary and stays byte-identical to upstream, so scripts parsing it are
+#   unaffected. See ADR-0013.
+#
+set -euo pipefail
+
+# Resolve the QudoSSL openssl binary. Deliberately no fallback to a system
+# openssl: running a distribution build under a QudoSSL banner would silently
+# misidentify which library is in use.
+self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+openssl_bin=""
+for c in "${self_dir}/openssl" "${self_dir}/../bin/openssl"; do
+    if [ -x "$c" ] && [ ! -L "$c" -o "$(basename "$(readlink "$c")")" != "qudossl" ]; then
+        openssl_bin="$c"; break
+    fi
+done
+
+if [ -z "$openssl_bin" ]; then
+    echo "qudossl: cannot find the QudoSSL openssl binary next to $self_dir" >&2
+    echo "qudossl: this wrapper never falls back to a system openssl." >&2
+    exit 1
+fi
+
+# QUDO_PRODUCT_VERSION tracks BUILD_METADATA in openssl/VERSION.dat.
+QUDO_PRODUCT_VERSION="1.0.0"
+
+banner() {
+    local base
+    base="$("$openssl_bin" version 2>/dev/null | awk '{print $2}')"
+    cat <<EOF
+QudoSSL ${QUDO_PRODUCT_VERSION} (OpenSSL ${base} base)
+Copyright (c) ZENV Quantum Private Limited. Apache License 2.0.
+Post-quantum TLS 1.3: ML-KEM (FIPS 203) hybrid key exchange.
+FIPS module: QudoSSL FIPS Provider  ·  Homepage: https://zenv.ai/qudossl
+EOF
+}
+
+if [ $# -eq 0 ]; then
+    banner
+    exec "$openssl_bin"
+fi
+
+case "$1" in
+    version|-version|--version|-v)
+        banner
+        ;;
+esac
+
+exec "$openssl_bin" "$@"

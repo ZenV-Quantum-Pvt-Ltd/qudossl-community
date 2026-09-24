@@ -1,0 +1,68 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "qudossl",
+      "version": "3.5.7-qudo",
+      "description": "OpenSSL 3.5.7 with ML-KEM/ML-DSA delegated to qudo-pqc-lib (single-binary FIPS module)."
+    },
+    "properties": [
+      {
+        "name": "note",
+        "value": "Hand-authored, version-pinned bill of materials for the SHIPPED product (fips.so + libcrypto/libssl). It exists so a CVE scanner matches by CPE against the real vendored-source components, which filesystem SCA cannot see. Grype (CPE matcher) is the authoritative engine; the security-scan workflow self-tests that matcher against a known-vulnerable pin each run. Keep the OpenSSL version/CPE in lockstep with openssl/VERSION.dat and the qudo pins with the qudo-pqc-lib subtree SHA. nginx and other Sprint-9 test consumers are NOT product components."
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "openssl-3.5.7",
+      "name": "openssl",
+      "version": "3.5.7",
+      "cpe": "cpe:2.3:a:openssl:openssl:3.5.7:*:*:*:*:*:*:*",
+      "licenses": [ { "license": { "id": "Apache-2.0" } } ],
+      "externalReferences": [
+        { "type": "vcs", "url": "https://github.com/openssl/openssl" },
+        { "type": "distribution", "comment": "pinned tag", "url": "https://github.com/openssl/openssl/tree/openssl-3.5.7" }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "qudo-pqc-lib",
+      "name": "qudo-pqc-lib",
+      "version": "0.0.0-main.73e5499",
+      "purl": "pkg:generic/qudo-pqc-lib@73e5499",
+      "licenses": [ { "expression": "Apache-2.0 AND MIT" } ],
+      "externalReferences": [
+        { "type": "vcs", "url": "https://github.com/ZenVInnovations/qudo-pqc-lib" }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "mlkem-native",
+      "name": "mlkem-native",
+      "version": "vendored",
+      "purl": "pkg:generic/mlkem-native@vendored",
+      "licenses": [ { "expression": "Apache-2.0 AND MIT" } ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "mldsa-native",
+      "name": "mldsa-native",
+      "version": "vendored",
+      "purl": "pkg:generic/mldsa-native@vendored",
+      "licenses": [ { "expression": "Apache-2.0 AND MIT" } ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "slhdsa-native",
+      "name": "slhdsa-native",
+      "version": "vendored",
+      "purl": "pkg:generic/slhdsa-native@vendored",
+      "licenses": [ { "expression": "Apache-2.0 AND MIT" } ]
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+name: Fuzzing
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Fuzz duration per target (seconds)'
+        required: false
+        default: '120'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  fuzz:
+    name: "fuzz / ${{ matrix.library }} / ${{ matrix.target }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - library: qudo-mlkem
+            target: fuzz_mlkem_der_import
+          - library: qudo-mlkem
+            target: fuzz_mlkem_pem_import
+          - library: qudo-mlkem
+            target: fuzz_mlkem_kem_ops
+          - library: qudo-mldsa
+            target: fuzz_mldsa_der_import
+          - library: qudo-mldsa
+            target: fuzz_mldsa_pem_import
+          - library: qudo-mldsa
+            target: fuzz_mldsa_sig_ops
+          - library: qudo-slhdsa
+            target: fuzz_slhdsa_der_import
+          - library: qudo-slhdsa
+            target: fuzz_slhdsa_pem_import
+          - library: qudo-slhdsa
+            target: fuzz_slhdsa_sig_ops
+
+    env:
+      CC: clang
+      CXX: clang++
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev clang
+
+      - name: Configure fuzz build
+        run: |
+          cmake -S ${{ matrix.library }} -B ${{ matrix.library }}/build-fuzz \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DBUILD_FUZZ=ON
+
+      - name: Build fuzz target
+        run: cmake --build ${{ matrix.library }}/build-fuzz --target ${{ matrix.target }} --parallel
+
+      - name: Run fuzz target (${{ github.event.inputs.duration || '120' }}s)
+        run: |
+          set -o pipefail
+          DURATION="${{ github.event.inputs.duration || '120' }}"
+          ${{ matrix.library }}/build-fuzz/fuzz/${{ matrix.target }} \
+            -max_total_time=$DURATION \
+            -print_final_stats=1 \
+            ${{ matrix.library }}/fuzz/corpus_der ${{ matrix.library }}/fuzz/seed_corpus_der 2>&1 | tail -200
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: crash-${{ matrix.library }}-${{ matrix.target }}
+          path: crash-*
+          if-no-files-found: ignore

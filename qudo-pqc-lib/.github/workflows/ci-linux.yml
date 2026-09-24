@@ -1,0 +1,87 @@
+name: Linux CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-and-test:
+    name: "linux / ${{ matrix.compiler }} / ${{ matrix.mode }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        mode: [standard, fips]
+
+    env:
+      CC: ${{ matrix.compiler }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev \
+            ${{ matrix.compiler == 'clang' && 'clang' || '' }}
+
+      - name: Build (${{ matrix.mode }})
+        run: |
+          if [ "${{ matrix.mode }}" = "fips" ]; then
+            ./build.sh --fips -t
+          else
+            ./build.sh -t
+          fi
+
+      - name: Verify FIPS binary properties
+        if: matrix.mode == 'fips'
+        run: |
+          echo "=== Checking no libssl linkage ==="
+          if ldd build-fips/lib/libqudo-pqc.so 2>/dev/null | grep -q libssl; then
+            echo "FAIL: FIPS build must not link libssl"
+            exit 1
+          fi
+          echo "PASS: no libssl dependency"
+
+          echo "=== Checking boundary symbols ==="
+          nm -D build-fips/lib/libqudo-pqc.so | grep qudo_fips_module_start
+          nm -D build-fips/lib/libqudo-pqc.so | grep qudo_fips_module_end
+          echo "PASS: boundary symbols present"
+
+          echo "=== Checking QUDO_FIPS_MODULE compile definition ==="
+          grep -q 'QUDO_FIPS_MODULE' build-fips/CMakeFiles/qudo-pqc.dir/flags.make
+          echo "PASS: QUDO_FIPS_MODULE defined"
+
+          echo "=== Checking no -ffunction-sections ==="
+          if grep -q '\-ffunction-sections' build-fips/CMakeFiles/qudo-pqc.dir/flags.make; then
+            echo "FAIL: -ffunction-sections breaks integrity boundary"
+            exit 1
+          fi
+          echo "PASS: no -ffunction-sections"

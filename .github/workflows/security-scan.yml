@@ -1,0 +1,185 @@
+name: security-scan
+
+# Free SCA + C SAST for QudoSSL. Unlike the heavy OE build matrix (ci.yml,
+# manual-only), these scans are cheap (seconds to a couple of minutes), so they
+# run automatically on every push and PR. No paid tooling required.
+#
+# CVE COVERAGE MODEL (read this before trusting a green run)
+#   The shipped crypto (OpenSSL, qudo-pqc-lib, the natives) is vendored C source
+#   with NO package manifest, so filesystem SCA cannot see it and Trivy's SBOM
+#   mode cannot CPE-match it. The authoritative CVE scan therefore runs GRYPE
+#   against sbom/qudossl.cdx.json (a hand-authored, version-pinned SBOM with
+#   CPEs) -- and PROVES the CPE matcher is live each run via a known-vulnerable
+#   canary (sbom/_selftest_vuln.cdx.json). Trivy here only does secret scanning
+#   and manifest-based dep CVEs; it does NOT cover the crypto.
+#
+# WHERE TO FIND THE RESULTS
+#   1. Job logs   -- raw scan output inline in each run.
+#   2. Artifacts  -- SBOMs + reports attached to the run (Actions -> run ->
+#                    "Artifacts"). Works on private repos.
+#   3. Security tab -- SARIF is uploaded to Code Scanning IF GitHub Advanced
+#                    Security is enabled; the upload is continue-on-error so it
+#                    never breaks the run when GHAS is absent.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # for the optional SARIF upload to the Security tab
+
+jobs:
+  # --- Trivy: secret scan + manifest-based dep CVEs (NOT the crypto) ---------
+  sca-trivy:
+    name: sca-trivy (secrets + deps)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install the Trivy CLI directly. The trivy-action wrapper pins a
+      # setup-trivy sub-action tag that upstream deletes, which breaks the
+      # action; the CLI install script always fetches a valid latest release.
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+          trivy --version
+
+      # De-noised secret scan. OpenSSL ships test private keys under test/,
+      # apps/, fuzz/, demos/ -- excluded so they do not drown a real leak.
+      - name: Trivy secret scan (source, de-noised)
+        run: |
+          trivy fs --scanners secret --no-progress --format sarif --output trivy-results.sarif \
+            --skip-dirs openssl/test --skip-dirs openssl/apps \
+            --skip-dirs openssl/fuzz --skip-dirs openssl/demos .
+          trivy fs --scanners secret --no-progress --format table \
+            --skip-dirs openssl/test --skip-dirs openssl/apps \
+            --skip-dirs openssl/fuzz --skip-dirs openssl/demos .
+
+      # Dependency CVEs from any REAL package manifests (e.g. ci/interop/go.mod).
+      # This does NOT cover the vendored C crypto -- that is the Grype pinned-SBOM
+      # scan in sca-grype. Manifest deps only; informational.
+      - name: Trivy dependency CVE scan (manifests only, informational)
+        run: trivy fs --scanners vuln --no-progress --format table --severity CRITICAL,HIGH .
+
+      - name: Upload SCA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca-reports
+          path: |
+            trivy-results.sarif
+            sbom/qudossl.cdx.json
+
+      - name: Upload SARIF to Security tab (needs GHAS on private repos)
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-secrets
+
+  # --- Grype: AUTHORITATIVE CVE scan of the shipped components ---------------
+  # Grype CPE-matches the pinned SBOM against its DB -- the only scan that sees
+  # OpenSSL/qudo. A canary self-test proves the matcher is live before the real
+  # result is trusted, then the job gates on CRITICAL.
+  sca-grype:
+    name: sca-grype (CVEs, pinned SBOM)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Grype + Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh  | sh -s -- -b /usr/local/bin
+          grype version
+          syft version
+
+      # Full-tree inventory SBOM (completeness only; also catalogues CI tooling,
+      # so it is NOT the CVE gate).
+      - name: Generate inventory SBOM (Syft, SPDX)
+        run: syft scan dir:. -o spdx-json=qudossl-inventory.spdx.json -q || true
+
+      # SELF-TEST: scan a known-vulnerable pin (openssl 3.0.0). If Grype's CPE
+      # matcher finds 0 CVEs here, it is broken and a clean product result would
+      # be meaningless -- fail the pipeline rather than report a false all-clear.
+      - name: Grype CPE-matcher self-test (canary)
+        run: |
+          grype sbom:sbom/_selftest_vuln.cdx.json -o json=canary.json -q
+          n=$(python3 -c "import json;print(len(json.load(open('canary.json'))['matches']))")
+          echo "canary CVE matches for openssl 3.0.0: $n"
+          test "$n" -ge 1
+
+      # REAL CVE scan of the pinned product SBOM. Gates on CRITICAL.
+      - name: Grype CVE scan of pinned SBOM (gate on CRITICAL)
+        run: |
+          grype sbom:sbom/qudossl.cdx.json -o table -o json=grype.json -o sarif=grype-results.sarif
+          crit=$(python3 -c "import json;d=json.load(open('grype.json'));print(sum(1 for m in d['matches'] if m['vulnerability']['severity'].lower()=='critical'))")
+          echo "CRITICAL CVEs in shipped components: $crit"
+          test "$crit" -eq 0
+
+      - name: Upload Grype/Syft artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca-grype-reports
+          path: |
+            qudossl-inventory.spdx.json
+            sbom/qudossl.cdx.json
+            grype.json
+            grype-results.sarif
+
+      - name: Upload Grype SARIF to Security tab (needs GHAS on private repos)
+        if: always() && hashFiles('grype-results.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: grype-results.sarif
+          category: grype-sca
+
+  # --- C SAST: static analysis of our own C (what Coverity does) -------------
+  sast-cppcheck:
+    name: sast-cppcheck (C static analysis)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      # Scan the delegation seam (the files QudoSSL actually changes) plus the
+      # qudo-pqc-lib wrappers. --force checks ALL #ifdef configurations (not just
+      # the first 12) so preprocessor-gated code is not silently skipped. The
+      # "Fail on cppcheck errors" step below is the actual gate.
+      - name: cppcheck (SARIF + XML)
+        run: |
+          set -o pipefail
+          cppcheck \
+            --enable=warning,performance,portability \
+            --force --inline-suppr --std=c99 --quiet \
+            --xml --output-file=cppcheck.xml \
+            openssl/crypto/ml_kem \
+            openssl/crypto/ml_dsa \
+            qudo-pqc-lib/qudo-mlkem/src \
+            qudo-pqc-lib/qudo-mldsa/src \
+            2> >(tee cppcheck.log >&2) || true
+          echo "== cppcheck findings =="
+          grep -c '<error ' cppcheck.xml || true
+
+      - name: Fail on cppcheck errors
+        run: |
+          errs=$(grep -c 'severity="error"' cppcheck.xml || true)
+          errs=${errs:-0}
+          echo "cppcheck error-severity findings: ${errs}"
+          test "${errs}" -eq 0
+
+      - name: Upload SAST artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast-reports
+          path: |
+            cppcheck.xml
+            cppcheck.log

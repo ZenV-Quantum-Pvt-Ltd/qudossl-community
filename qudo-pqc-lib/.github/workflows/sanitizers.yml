@@ -1,0 +1,124 @@
+name: Sanitizers
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  asan-ubsan:
+    name: "ASan+UBSan / ${{ matrix.compiler }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    env:
+      CC: ${{ matrix.compiler }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev \
+            ${{ matrix.compiler == 'clang' && 'clang' || '' }}
+
+      - name: Build with ASan + UBSan
+        run: ./build.sh -s
+
+      - name: Run tests
+        working-directory: build-asan
+        run: ctest --output-on-failure --parallel 1
+
+  tsan:
+    name: "TSan / clang"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CC: clang
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev clang
+
+      - name: Configure (TSan)
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_TSAN=ON \
+            -DQUDO_PQC_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run tests
+        working-directory: build
+        run: ctest --output-on-failure --parallel 1
+
+  msan:
+    name: "MSan / clang"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CC: clang
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev clang
+
+      - name: Configure (MSan)
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_MSAN=ON \
+            -DQUDO_PQC_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run tests
+        working-directory: build
+        run: ctest --output-on-failure --parallel 1

@@ -1,0 +1,56 @@
+#!/bin/bash
+# Pre-commit hook: enforce clang-format across the whole repository.
+# Scans all tracked C/C++ files in project-owned directories (matches
+# .github/workflows/lint.yml scope). Fails if any file needs reformatting,
+# not just newly staged changes.
+# Bypass (not recommended): git commit --no-verify
+
+set -e
+
+# Match CI scope exactly — project-owned C/H sources, excluding vendored
+# upstream code (mlkem-native, mldsa-native, slhdsa-native).
+ROOTS=(
+    src include tests tools
+    qudo-mlkem/src   qudo-mlkem/include
+    qudo-mldsa/src   qudo-mldsa/include
+    qudo-slhdsa/src  qudo-slhdsa/include
+)
+
+existing=()
+for r in "${ROOTS[@]}"; do
+    [ -d "$r" ] && existing+=("$r")
+done
+
+if [ ${#existing[@]} -eq 0 ]; then
+    exit 0
+fi
+
+files=$(find "${existing[@]}" -type f \( -name '*.c' -o -name '*.h' \) \
+    | grep -vE '(mlkem-native|mldsa-native|slhdsa-native)/' || true)
+
+if [ -z "$files" ]; then
+    exit 0
+fi
+
+if ! command -v clang-format >/dev/null 2>&1; then
+    echo "pre-commit: clang-format not installed — skipping style check."
+    exit 0
+fi
+
+violations=0
+for f in $files; do
+    if ! clang-format --dry-run --Werror "$f" 2>/dev/null; then
+        echo "  style violation: $f"
+        violations=1
+    fi
+done
+
+if [ $violations -ne 0 ]; then
+    echo ""
+    echo "clang-format violations detected. Fix with:"
+    echo "    clang-format -i <files>"
+    echo ""
+    exit 1
+fi
+
+exit 0

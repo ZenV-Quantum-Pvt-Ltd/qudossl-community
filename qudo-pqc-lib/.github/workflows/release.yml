@@ -1,0 +1,300 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "Build / ${{ matrix.artifact_name }}"
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact_name: linux-x86_64
+            archive_ext: tar.gz
+            cross_arch: ''
+          - os: ubuntu-24.04
+            artifact_name: linux-arm64
+            archive_ext: tar.gz
+            cross_arch: arm64
+          - os: macos-latest
+            artifact_name: macos-arm64
+            archive_ext: tar.gz
+            cross_arch: ''
+          - os: windows-latest
+            artifact_name: windows-x86_64
+            archive_ext: zip
+            cross_arch: ''
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      # ── Linux ────────────────────────────────────────────────────────────
+      - name: Install deps (Linux x86_64)
+        if: runner.os == 'Linux' && matrix.cross_arch == ''
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build libssl-dev
+
+      - name: Install deps (Linux arm64 cross)
+        if: matrix.cross_arch == 'arm64'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        run: brew install cmake ninja openssl@3
+
+      # ── Configure ────────────────────────────────────────────────────────
+      - name: Configure (Linux/macOS native)
+        if: runner.os != 'Windows' && matrix.cross_arch == ''
+        shell: bash
+        env:
+          OPENSSL_ROOT_DIR: ${{ runner.os == 'macOS' && '/opt/homebrew/opt/openssl@3' || '' }}
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$PWD/install \
+            -DQUDO_FIPS_MODULE=ON \
+            -DQUDO_PQC_BUILD_TESTS=OFF
+
+      - name: Configure (Linux cross arm64)
+        if: matrix.cross_arch != '' && runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/aarch64-linux-gnu.cmake \
+            -DCMAKE_INSTALL_PREFIX=$PWD/install \
+            -DQUDO_FIPS_MODULE=ON \
+            -DQUDO_PQC_BUILD_TESTS=OFF
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          cmake -S . -B build -A x64 ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX=%CD%\install ^
+            -DQUDO_FIPS_MODULE=ON ^
+            -DQUDO_PQC_BUILD_TESTS=OFF
+
+      # ── Build + install ──────────────────────────────────────────────────
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Install
+        run: cmake --install build --config Release
+
+      # ── Embed FIPS integrity HMAC ────────────────────────────────────────
+      # Required: without this, qudo_pqc_init() fails the integrity self-test
+      # at module load. Must run AFTER install (installed binary is what ships).
+      #
+      # qudo_fipsinstall is architecture-agnostic (it edits ELF/Mach-O/PE
+      # bytes, no crypto operations on the target arch). For cross builds
+      # we build a host-arch copy of the tool separately so it runs natively
+      # on the GHA runner — no qemu, no multiarch glibc required.
+      - name: Build host qudo_fipsinstall (cross Linux)
+        if: matrix.cross_arch != '' && runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake -S . -B build-host -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DQUDO_PQC_BUILD_TESTS=OFF
+          cmake --build build-host --target qudo_fipsinstall
+
+      - name: Embed FIPS HMAC (native Linux/macOS)
+        if: runner.os != 'Windows' && matrix.cross_arch == ''
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            LIB="install/lib/libqudo-pqc.dylib"
+          else
+            LIB="install/lib/libqudo-pqc.so"
+          fi
+          install/bin/qudo_fipsinstall -embed -module "$LIB"
+          install/bin/qudo_fipsinstall -verify-embed -module "$LIB"
+          # macOS: the in-place HMAC embed invalidates the Mach-O signature;
+          # macOS 26+ SIGKILLs binaries with a stale signature at load. Re-sign
+          # ad-hoc as the final mutation (remove-then-sign, since the stale blob
+          # is not a format `codesign --force` can overwrite). The signature
+          # blob is outside the integrity-HMAC region, so verify-embed (above)
+          # and the runtime self-test still match.
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            codesign --remove-signature "$LIB" 2>/dev/null || true
+            codesign -s - -f "$LIB"
+          fi
+
+      - name: Smoke verify library (Linux/macOS native)
+        if: runner.os != 'Windows' && matrix.cross_arch == ''
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            LIB="install/lib/libqudo-pqc.dylib"
+          else
+            LIB="install/lib/libqudo-pqc.so"
+          fi
+          { nm -D "$LIB" 2>/dev/null; nm -gU "$LIB" 2>/dev/null; } \
+            | grep -q 'qudo_pqc_init' \
+            || { echo "FAIL: qudo_pqc_init not exported by $LIB"; exit 1; }
+          echo "smoke OK: $LIB exports the FIPS module API"
+
+      - name: Embed FIPS HMAC (cross Linux)
+        if: matrix.cross_arch != '' && runner.os == 'Linux'
+        shell: bash
+        run: |
+          LIB="install/lib/libqudo-pqc.so"
+          build-host/tools/qudo_fipsinstall -embed -module "$LIB"
+          build-host/tools/qudo_fipsinstall -verify-embed -module "$LIB"
+
+      # Windows uses external-cnf integrity (not embedded HMAC) — see
+      # build_windows.bat:184-188. MSVC /OPT:ICF folding + stripped COFF
+      # symbols make in-binary patching unreliable; the runtime picks up
+      # qudofipsmodule.cnf via QUDO_PQC_FIPS_CONF.
+      - name: Generate FIPS integrity config (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          install\bin\qudo_fipsinstall.exe -module install\bin\qudo-pqc.dll -out install\bin\qudofipsmodule.cnf
+          install\bin\qudo_fipsinstall.exe -verify -module install\bin\qudo-pqc.dll -in install\bin\qudofipsmodule.cnf
+
+      # ── Write VERSION file (machine-readable, tag-derived) ───────────────
+      - name: Write VERSION (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p install/share/doc/qudo-pqc
+          printf '%s\n' "${{ github.ref_name }}" > install/share/doc/qudo-pqc/VERSION
+
+      - name: Write VERSION (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path install\share\doc\qudo-pqc | Out-Null
+          Set-Content -Path install\share\doc\qudo-pqc\VERSION -Value "${{ github.ref_name }}"
+
+      # ── Generate SBOM (CycloneDX + SPDX) ─────────────────────────────────
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: install
+          format: cyclonedx-json
+          output-file: install/share/doc/qudo-pqc/sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate SBOM (SPDX)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: install
+          format: spdx-json
+          output-file: install/share/doc/qudo-pqc/sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      # ── Package ──────────────────────────────────────────────────────────
+      - name: Package (tar.gz)
+        if: matrix.archive_ext == 'tar.gz'
+        shell: bash
+        run: |
+          cd install
+          tar czf ../libqudo-pqc-${{ matrix.artifact_name }}.tar.gz *
+
+      - name: Package (zip)
+        if: matrix.archive_ext == 'zip'
+        shell: pwsh
+        run: Compress-Archive -Path install/* -DestinationPath libqudo-pqc-${{ matrix.artifact_name }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: libqudo-pqc-${{ matrix.artifact_name }}
+          path: libqudo-pqc-${{ matrix.artifact_name }}.${{ matrix.archive_ext }}
+
+  release:
+    name: Publish Release
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout (for CHANGELOG)
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: dist
+
+      - name: Flatten artifact paths
+        run: |
+          find dist -type f \( -name '*.tar.gz' -o -name '*.zip' \) -exec mv {} dist/ \;
+
+      - name: Generate SHA-256 checksums
+        run: |
+          cd dist
+          for f in *.tar.gz *.zip; do
+            [ -e "$f" ] || continue
+            sha256sum "$f" > "$f.sha256"
+          done
+
+      # Artifact attestations require a public repo or a Team/Enterprise plan;
+      # skip cleanly on free-plan private repos. Activates automatically when
+      # the repo is public (or the condition is relaxed after a plan upgrade).
+      - name: Attest build provenance
+        if: github.event.repository.visibility == 'public'
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4
+        with:
+          subject-path: 'dist/*.tar.gz, dist/*.zip'
+
+      - name: Build release notes (CHANGELOG section + auto)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER="${{ github.ref_name }}"; VNUM="${VER#v}"
+          : > RELEASE_NOTES.md
+          if [ -f CHANGELOG.md ]; then
+            awk -v v="$VNUM" '
+              index($0, "## [" v "]") == 1 { f=1; next }
+              f && /^## \[/ { exit }
+              f { print }
+            ' CHANGELOG.md > section.md
+            if [ -s section.md ]; then
+              { echo "## Changes in ${VER}"; echo; cat section.md; echo; } >> RELEASE_NOTES.md
+            fi
+          fi
+          gh api "repos/${{ github.repository }}/releases/generate-notes" \
+            -f tag_name="$VER" --jq '.body' >> RELEASE_NOTES.md 2>/dev/null || true
+          echo "==== release notes ===="; cat RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --title "libqudo-pqc ${{ github.ref_name }}" \
+            --notes-file RELEASE_NOTES.md \
+            --draft \
+            dist/*.tar.gz dist/*.zip dist/*.sha256

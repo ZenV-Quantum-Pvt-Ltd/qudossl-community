@@ -1,0 +1,12 @@
+# Vendored subtrees. Marking them generated collapses them by default in
+# GitHub diffs and excludes them from language statistics, so review focuses
+# on Qudo-authored files. Content is upstream; review the pinned SHA, not the
+# files. See docs/branching.md.
+openssl/**          linguist-generated=true
+openssl/**          linguist-vendored=true
+qudo-pqc-lib/**     linguist-generated=true
+qudo-pqc-lib/**     linguist-vendored=true
+
+# Keep line endings sane for the Windows build path.
+*.ps1  text eol=crlf
+*.sh   text eol=lf

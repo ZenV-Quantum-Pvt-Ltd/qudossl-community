@@ -1,0 +1,146 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-17T00:00:00Z",
+    "component": {
+      "type": "library",
+      "name": "qudo-pqc",
+      "version": "1.0.0",
+      "description": "FIPS 140-3 Post-Quantum Cryptography module (FIPS 203 ML-KEM + FIPS 204 ML-DSA + FIPS 205 SLH-DSA)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 AND MIT"
+        }
+      ],
+      "supplier": {
+        "name": "QUDO Security"
+      },
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/qudo-security/qudo-pqc"
+        }
+      ]
+    },
+    "tools": [
+      {
+        "name": "manual",
+        "version": "1.0"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "qudo-mlkem",
+      "version": "1.0.0",
+      "description": "ML-KEM key encapsulation library (FIPS 203)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 AND MIT"
+        }
+      ],
+      "purl": "pkg:generic/qudo-security/qudo-mlkem@1.0.0"
+    },
+    {
+      "type": "library",
+      "name": "qudo-mldsa",
+      "version": "1.0.0",
+      "description": "ML-DSA digital signature library (FIPS 204)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 AND MIT"
+        }
+      ],
+      "purl": "pkg:generic/qudo-security/qudo-mldsa@1.0.0"
+    },
+    {
+      "type": "library",
+      "name": "qudo-slhdsa",
+      "version": "1.0.0",
+      "description": "SLH-DSA stateless hash-based signature library (FIPS 205)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 AND MIT"
+        }
+      ],
+      "purl": "pkg:generic/qudo-security/qudo-slhdsa@1.0.0"
+    },
+    {
+      "type": "library",
+      "name": "mlkem-native",
+      "description": "Formally verified ML-KEM reference implementation (vendored)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/pq-code-package/mlkem-native"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "mldsa-native",
+      "description": "Formally verified ML-DSA reference implementation (vendored)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/pq-code-package/mldsa-native"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "slhdsa-native",
+      "description": "SLH-DSA reference implementation (vendored)",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "scope": "required"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "qudo-pqc",
+      "dependsOn": [
+        "qudo-mlkem",
+        "qudo-mldsa",
+        "qudo-slhdsa"
+      ]
+    },
+    {
+      "ref": "qudo-mlkem",
+      "dependsOn": [
+        "mlkem-native"
+      ]
+    },
+    {
+      "ref": "qudo-mldsa",
+      "dependsOn": [
+        "mldsa-native"
+      ]
+    },
+    {
+      "ref": "qudo-slhdsa",
+      "dependsOn": [
+        "slhdsa-native"
+      ]
+    }
+  ]
+}

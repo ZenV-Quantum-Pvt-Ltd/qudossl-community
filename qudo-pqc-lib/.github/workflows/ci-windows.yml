@@ -1,0 +1,108 @@
+name: Windows CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  msvc:
+    name: "windows-msvc / ${{ matrix.mode }}"
+    runs-on: windows-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [standard, fips]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      # Use the project's Windows-native build script. It handles configure,
+      # build, FIPS HMAC embedding, PATH setup, and ctest in one invocation —
+      # matching what Linux/macOS do with build.sh.
+      - name: Build + Test (MSVC / ${{ matrix.mode }})
+        shell: cmd
+        run: |
+          if "${{ matrix.mode }}"=="fips" (
+            call build_windows.bat --fips --test
+          ) else (
+            call build_windows.bat --test
+          )
+
+  mingw:
+    name: "windows-mingw / ${{ matrix.mode }}"
+    runs-on: windows-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [standard, fips]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup MSYS2 / MinGW
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        with:
+          msystem: MINGW64
+          update: true
+          # OpenSSL intentionally omitted: libqudo-pqc uses internal crypto.
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
+      - name: Build + Test (MinGW / ${{ matrix.mode }})
+        shell: cmd
+        run: |
+          if "${{ matrix.mode }}"=="fips" (
+            call build_windows.bat --mingw --fips --test
+          ) else (
+            call build_windows.bat --mingw --test
+          )
+
+  arm64-cross:
+    name: "windows-arm64 / fips (cross)"
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      # ARM64 binaries cannot run on an x86_64 runner — build-only verification.
+      - name: Configure (ARM64 cross-compile, FIPS)
+        shell: cmd
+        run: |
+          cmake -S . -B build -A ARM64 ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DQUDO_FIPS_MODULE=ON ^
+            -DCMAKE_SYSTEM_PROCESSOR=ARM64 ^
+            -DQUDO_PQC_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build --config Release --parallel

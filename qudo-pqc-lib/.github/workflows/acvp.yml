@@ -1,0 +1,61 @@
+name: ACVP Validation
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  acvp:
+    name: ACVP (ML-KEM / ML-DSA / SLH-DSA)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev python3
+
+      - name: Build with ACVP
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_ACVP=ON \
+            -DQUDO_PQC_BUILD_TESTS=OFF
+          cmake --build build --parallel
+
+      - name: ACVP ML-KEM
+        run: LD_LIBRARY_PATH=build/lib python3 acvp/acvp_client_mlkem.py --binary build/acvp/qudo_acvp_mlkem
+
+      - name: ACVP ML-DSA
+        run: LD_LIBRARY_PATH=build/lib python3 acvp/acvp_client_mldsa.py --binary build/acvp/qudo_acvp_mldsa
+
+      - name: ACVP SLH-DSA
+        run: LD_LIBRARY_PATH=build/lib python3 acvp/acvp_client_slhdsa.py --binary build/acvp/qudo_acvp_slhdsa

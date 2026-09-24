@@ -1,0 +1,52 @@
+QudoSSL
+Copyright (c) 2024-2026 QUDO Security
+
+This product bundles third-party components under permissive licenses
+(Apache-2.0, and Apache-2.0 AND MIT). Their copyright and license notices are
+retained below as required. The complete, authoritative notices are the LICENSE
+files and the per-file SPDX / copyright headers within each component's
+directory; this file aggregates the principal attributions.
+
+================================================================================
+OpenSSL
+--------------------------------------------------------------------------------
+  Copyright 1998-2025 The OpenSSL Project Authors. All Rights Reserved.
+  Licensed under the Apache License, Version 2.0.
+  Source: https://github.com/openssl/openssl (tag openssl-3.5.7)
+  License text: openssl/LICENSE.txt
+
+================================================================================
+qudo-pqc-lib
+--------------------------------------------------------------------------------
+  Copyright (c) 2024-2026 QUDO Security
+  Licensed under the Apache License, Version 2.0 AND the MIT License.
+  License text: qudo-pqc-lib/LICENSE
+
+  qudo-pqc-lib vendors the following upstream cryptographic libraries:
+
+  mlkem-native
+    Copyright (c) The mlkem-native project authors
+    Copyright (c) 2020 Dougall Johnson
+    (and the copyright holders indicated at the top of each source file)
+    Licensed under the Apache License, Version 2.0 AND the MIT License.
+    License text: qudo-pqc-lib/qudo-mlkem/mlkem-native/LICENSE
+
+  mldsa-native
+    Copyright (c) The mldsa-native project authors
+    (and the copyright holders indicated at the top of each source file)
+    Licensed under the Apache License, Version 2.0 AND the MIT License.
+    License text: qudo-pqc-lib/qudo-mldsa/LICENSE
+
+  slhdsa-native
+    Copyright (c) 2024-2026 QUDO Security
+    (and the copyright holders indicated at the top of each source file)
+    Licensed under the Apache License, Version 2.0 AND the MIT License.
+    License text: qudo-pqc-lib/qudo-slhdsa/LICENSE
+
+================================================================================
+
+The mlkem-native and mldsa-native libraries incorporate work derived from the
+CRYSTALS-Kyber and CRYSTALS-Dilithium reference implementations and related
+formally-verified sources; per-file headers identify the specific copyright
+holders and their license terms. Retain this NOTICE file and the referenced
+LICENSE files with any redistribution of QudoSSL, in source or binary form.

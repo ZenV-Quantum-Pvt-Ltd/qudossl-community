@@ -1,0 +1,73 @@
+name: Standalone Subprojects CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+# Each subproject (qudo-mlkem, qudo-mldsa, qudo-slhdsa) is buildable on its
+# own, with its own tests and examples. The top-level build does NOT compile
+# these suites, so without this job they rot silently when the subproject
+# API changes.
+jobs:
+  standalone-test:
+    name: "standalone / ${{ matrix.subproject }} / ${{ matrix.compiler }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        subproject: [qudo-mlkem, qudo-mldsa, qudo-slhdsa]
+        compiler: [gcc, clang]
+
+    env:
+      CC: ${{ matrix.compiler }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build libssl-dev valgrind \
+            ${{ matrix.compiler == 'clang' && 'clang' || '' }}
+
+      - name: Configure
+        run: |
+          cmake -S ${{ matrix.subproject }} -B ${{ matrix.subproject }}/build-ci \
+            -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build ${{ matrix.subproject }}/build-ci
+
+      # dudect-style statistical timing tests need quiet dedicated hardware;
+      # shared runners produce false positives from noisy-neighbor jitter.
+      # Run those locally (scripts/test_standalone.sh includes them).
+      - name: Test
+        run: |
+          ctest --test-dir ${{ matrix.subproject }}/build-ci \
+            --output-on-failure -E "constant_time"

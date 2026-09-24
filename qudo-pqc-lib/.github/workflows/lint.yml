@@ -1,0 +1,98 @@
+name: Lint
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install clang-format
+        run: sudo apt-get update -q && sudo apt-get install -y --no-install-recommends clang-format
+
+      - name: Check formatting
+        run: |
+          FILES=$(find src include tests qudo-mlkem/src qudo-mlkem/include qudo-mldsa/src qudo-mldsa/include qudo-slhdsa/src qudo-slhdsa/include \
+                  -type f \( -name '*.c' -o -name '*.h' \) 2>/dev/null | \
+                  grep -vE '(mlkem-native|mldsa-native|slhdsa-native|qudo_self_test_data)')
+          clang-format --dry-run --Werror $FILES
+
+  clang-tidy:
+    name: clang-tidy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: sudo apt-get update -q && sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build libssl-dev clang clang-tidy
+
+      - name: Configure (compile_commands.json)
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DQUDO_PQC_BUILD_TESTS=ON
+
+      - name: Run clang-tidy
+        run: |
+          for f in src/*.c src/fips/*.c; do
+            echo "Checking $f..."
+            clang-tidy -p build "$f" --warnings-as-errors='' 2>&1 || true
+          done
+
+  cppcheck:
+    name: cppcheck
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install cppcheck
+        run: sudo apt-get update -q && sudo apt-get install -y --no-install-recommends cppcheck
+
+      - name: Run cppcheck
+        run: |
+          cppcheck --enable=warning,performance,portability \
+            --std=c99 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --error-exitcode=1 \
+            -I include/ -I src/ -I src/fips/ \
+            src/
