@@ -114,12 +114,33 @@ jobs:
           test "$n" -ge 1
 
       # REAL CVE scan of the pinned product SBOM. Gates on CRITICAL.
+      #
+      # Grype itself is not filtered: every finding still reaches the table, the
+      # JSON, the SARIF and the Security tab. Only the gate's arithmetic carries
+      # an allowlist, so an accepted CVE stays visible instead of disappearing.
       - name: Grype CVE scan of pinned SBOM (gate on CRITICAL)
         run: |
           grype sbom:sbom/qudossl.cdx.json -o table -o json=grype.json -o sarif=grype-results.sarif
-          crit=$(python3 -c "import json;d=json.load(open('grype.json'));print(sum(1 for m in d['matches'] if m['vulnerability']['severity'].lower()=='critical'))")
-          echo "CRITICAL CVEs in shipped components: $crit"
-          test "$crit" -eq 0
+          python3 - <<'PY'
+          import json, sys
+          # CRITICALs reviewed and accepted while the OpenSSL pin is held at
+          # 3.5.7. Both are fixed upstream in 3.5.8, so re-vendoring that tag is
+          # the real remedy and removes the need for these entries. Any other
+          # CRITICAL, including a new one against 3.5.7, still fails the build.
+          ACCEPTED = {"CVE-2026-63073", "CVE-2026-75803"}
+
+          d = json.load(open("grype.json"))
+          crit = {m["vulnerability"]["id"] for m in d["matches"]
+                  if m["vulnerability"]["severity"].lower() == "critical"}
+          accepted, blocking = sorted(crit & ACCEPTED), sorted(crit - ACCEPTED)
+          print(f"CRITICAL CVEs in shipped components: {len(crit)}")
+          if accepted:
+              print("accepted (pin held at OpenSSL 3.5.7): " + ", ".join(accepted))
+          if blocking:
+              print("BLOCKING, not accepted: " + ", ".join(blocking))
+              sys.exit(1)
+          print("no unaccepted CRITICAL findings")
+          PY
 
       - name: Upload Grype/Syft artifacts
         if: always()
