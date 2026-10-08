@@ -95,22 +95,34 @@ export QUDOSSL_PREFIX="$HOME/qudossl"      # no sudo needed
 
 ### 2. Build
 
-```sh
-git clone https://github.com/ZenV-Quantum-Pvt-Ltd/qudossl-community.git
-cd qudossl
+Get the source. Either take the published release, which carries a SHA-256 you
+can check, or clone the repository:
 
+```sh
+rel=qudossl-community-1.0.0
+url=https://github.com/ZenV-Quantum-Pvt-Ltd/qudossl-community/releases/download/$rel
+
+curl -fLO "$url/$rel-src.tar.gz" -fLO "$url/$rel-src.tar.gz.sha256"
+shasum -a 256 -c "$rel-src.tar.gz.sha256"    # Linux: sha256sum -c
+
+tar xf "$rel-src.tar.gz" && cd "$rel"
+```
+
+```sh
+# or from git
+git clone https://github.com/ZenV-Quantum-Pvt-Ltd/qudossl-community.git
+cd qudossl-community
+```
+
+Then build:
+
+```sh
 make -C build all      PREFIX="$QUDOSSL_PREFIX"      OPENSSL_EXTRA_FLAGS="-Wl,-rpath,$QUDOSSL_PREFIX/lib"
 ```
 
 Two stages: CMake builds `qudo-pqc-lib/` into `libqudo-pqc.a` (math-only), then
 OpenSSL is configured against that archive and built with the FIPS provider.
 Roughly 3–6 minutes on 10 cores. Add `JOBS=N` to control parallelism.
-
-> **Build `dev`, not `main`, for now.** A plain `git clone` checks out `main`,
-> which does not yet carry the QudoSSL product identity, the audit fixes or the
-> `qudossl` CLI — the outputs quoted below will not match, and there will be no
-> `qudossl` binary. Those land on `main` when the open `dev → main` PR merges;
-> until then `git checkout dev` is required.
 
 > **`-Wl,-rpath` is not optional on Linux.** Distributions ship their own
 > `libssl.so.3` — the *same* SONAME, because QudoSSL is ABI-compatible with
@@ -121,8 +133,14 @@ Roughly 3–6 minutes on 10 cores. Add `JOBS=N` to control parallelism.
 
 ```sh
 make -C build install_sw PREFIX="$QUDOSSL_PREFIX"   # libs, headers, CLI
+make -C openssl install_ssldirs                     # openssl.cnf, certs/, private/
 make -C openssl install_fips                        # fips.so + fipsmodule.cnf
 ```
+
+`install_ssldirs` installs the configuration directory itself. `install_sw` does
+not create it, and `install_fips` only writes `fipsmodule.cnf` into it — so
+without this step a non-FIPS install has nowhere to keep its configuration, and
+`openssl req` aborts with no `openssl.cnf` to read.
 
 `install_sw` skips the ~2000 man pages that `install` would also copy. Use
 `sudo` on both if your prefix is outside your home directory.
