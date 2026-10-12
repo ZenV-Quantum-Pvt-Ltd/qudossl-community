@@ -87,7 +87,16 @@ esac
 export QUDOSSL_PREFIX="$HOME/qudossl"      # no sudo needed
 # or, system-wide (needs sudo on the install steps):
 # export QUDOSSL_PREFIX=/opt/qudossl
+
+# Clear any inherited OpenSSL environment before going further.
+unset OPENSSL_CONF OPENSSL_MODULES
 ```
+
+> **Do not skip the `unset`.** If `OPENSSL_CONF` or `OPENSSL_MODULES` point at
+> another OpenSSL install — a previous QudoSSL prefix, or one exported from your
+> shell profile — `fipsinstall` in step 5 validates **that** module instead,
+> reports its name and version, and still prints `INSTALL PASSED`. The integrity
+> record then covers a binary you are not running.
 
 > `/opt/qudossl` belongs to QudoSSL exclusively. The free **Qudo Provider** is a
 > plugin and installs into your existing OpenSSL's `ossl-modules/` directory —
@@ -370,9 +379,13 @@ cd "$(mktemp -d)"
 qudossl req -x509 -new -noenc -newkey rsa:3072 \
     -keyout s.key -out s.crt -days 2 -subj "/CN=localhost" 2>/dev/null
 
-openssl s_server -cert s.crt -key s.key -accept 4433 -www \
+qudossl s_server -cert s.crt -key s.key -accept 4433 -www -quiet \
     -groups X25519MLKEM768:SecP256r1MLKEM768:SecP384r1MLKEM1024:secp256r1 &
-sleep 2
+SRV=$!
+
+# Wait for the listener rather than guessing at a sleep: on a loaded machine
+# the client otherwise fails with "connect:errno=61 Connection refused".
+until nc -z 127.0.0.1 4433 2>/dev/null; do sleep 0.2; done
 
 qudossl s_client -connect 127.0.0.1:4433 \
     -groups X25519MLKEM768 -tls1_3 -brief </dev/null
@@ -388,7 +401,7 @@ Negotiated TLS1.3 group: X25519MLKEM768      <- post-quantum key exchange
 Those last two lines are the point: an **ordinary RSA certificate** securing a
 session whose **key exchange is post-quantum**. Nothing was reissued.
 
-Stop the server with `kill %1`.
+Stop the server with `kill $SRV`.
 
 ### The boundary gates
 
