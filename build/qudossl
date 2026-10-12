@@ -20,7 +20,7 @@
 #   This wrapper achieves the same result with zero upstream changes, and it
 #   scopes the banner correctly for free: `openssl version` is the untouched
 #   binary and stays byte-identical to upstream, so scripts parsing it are
-#   unaffected. See ADR-0013.
+#   unaffected.
 #
 set -euo pipefail
 

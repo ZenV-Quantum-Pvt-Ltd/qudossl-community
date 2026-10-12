@@ -18,7 +18,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# SLH-DSA is not delegated (ADR-0010), so it is not scanned.
+# SLH-DSA is not delegated -- it stays upstream -- so it is not scanned.
 SRC="${REPO_ROOT}/openssl/crypto/ml_kem ${REPO_ROOT}/openssl/crypto/ml_dsa"
 
 # Non-seeded entry points: these obtain randomness themselves.
@@ -62,6 +62,6 @@ Use instead:
   QUDO_MLDSA_keypair_internal / QUDO_MLDSA_sign_internal / QUDO_MLDSA_verify_internal
   QUDO_SLHDSA_keypair_internal / QUDO_SLHDSA_sign_internal / QUDO_SLHDSA_verify_internal
 
-See docs/adr/ADR-0009 and build/build_libqudo_pqc.sh.
+See build/build_libqudo_pqc.sh.
 EOF
 exit 1

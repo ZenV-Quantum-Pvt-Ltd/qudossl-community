@@ -21,7 +21,7 @@ protected, and which changes require CMVP re-validation. It is a companion to
    integrity check (Security Policy §5.3) and is outside the validated
    configuration. Fixes are delivered as new validated builds, not in-place edits.
 3. **Minimize divergence from upstream.** ML-KEM/ML-DSA delegation is confined to
-   the crypto-layer seam (ADR-0005); the `upstream-parity` CI gate enforces that
+ the crypto-layer seam; the `upstream-parity` CI gate enforces that
    the OpenSSL subtree differs from `openssl-3.5.7` only in that seam, so security
    fixes cherry-pick cleanly.
 
@@ -102,5 +102,5 @@ here **[TO BE CONFIRMED]**.
 - [`docs/security-policy.md`](security-policy.md), [`docs/branching.md`](branching.md),
   [`docs/subtree-pins.md`](subtree-pins.md), [`docs/reproducibility.md`](reproducibility.md)
 - [`docs/crypto-officer-guide.md`](crypto-officer-guide.md)
-- ADR-0004 (baseline pin), ADR-0005 (delegation seam), ADR-0008 (subtree layout)
+- (baseline pin), (delegation seam), (subtree layout)
 - CMVP management manual / re-validation guidance **[TO BE CONFIRMED: reference]**

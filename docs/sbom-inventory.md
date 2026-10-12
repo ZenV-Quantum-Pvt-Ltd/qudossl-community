@@ -29,7 +29,7 @@ and attached to each run as the `sca-reports` / `sca-grype-reports` artifacts.
   A branch head is not a stable cert artifact — cut a release tag and re-pin
   before the cert freeze (tracked in `docs/qudo-pqc-lib-release-tag-proposal.md`).
 - **Under QudoSSL only ML-KEM and ML-DSA are delegated to qudo;** SLH-DSA is
-  served by OpenSSL (ADR-0010). slhdsa-native is present in the source tree but
+ served by OpenSSL. slhdsa-native is present in the source tree but
   not linked into `fips.so`.
 - The CI SBOM (Syft/Trivy) will additionally enumerate build-time tooling and
   any transitive OS packages in the runner image; this table is the crypto

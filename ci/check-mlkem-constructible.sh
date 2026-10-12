@@ -2,7 +2,7 @@
 #
 # ML-KEM constructibility gate — Sprint 2 Story 2.9 / audit finding A1.
 #
-# ADR-0009 mandates consuming qudo-pqc-lib as a standard build with no call to
+# qudo-pqc-lib is consumed as a standard build, with no call to
 # qudo_pqc_init(). In that configuration QUDO_KEM_init() fails its RNG self-test
 # and both constructors return NULL, so ML-KEM cannot be used at all — every
 # seeded ML-KEM entry point takes a QUDO_KEM handle and there is no handle-free
@@ -60,7 +60,8 @@ cat >&2 <<EOF
 ML-KEM CONSTRUCTIBILITY GATE FAILED.
 
 QUDO_KEM_init() runs an RNG self-test requiring qudo's CTR-DRBG to be seeded,
-which happens only inside qudo_pqc_init() — the call ADR-0009 forbids. Both
+which happens only inside qudo_pqc_init() — the call this build deliberately
+omits. Both
 constructors return NULL, and every seeded ML-KEM entry point requires a handle.
 
 Consequence: once Story 2.0 links the archive, ossl_ml_kem_genkey would call
@@ -70,6 +71,6 @@ providers — so OpenSSL's ML-KEM POST KAT fails and fips.so refuses to load.
 Root cause: gated on QUDO_COMBINED_BUILD (qudo-pqc-lib/CMakeLists.txt:174,
 unconditional), not on QUDO_FIPS_MODULE.
 
-Fix belongs upstream. See docs/adr/ADR-0009 (Correction) and Sprint 2 Story 2.9.
+Fix belongs upstream.
 EOF
 exit 1

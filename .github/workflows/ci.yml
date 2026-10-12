@@ -107,7 +107,7 @@ jobs:
           sed 's/^/  /' /tmp/delta.txt
           # Permitted: ML-KEM and ML-DSA (delegated) plus the build plumbing.
           # crypto/slh_dsa/ is deliberately NOT permitted -- SLH-DSA stays
-          # upstream per ADR-0010, so any change there is unintended.
+          # upstream by design, so any change there is unintended.
           grep -vE '^(crypto/(ml_kem|ml_dsa)/|Configure$)' /tmp/delta.txt \
             > /tmp/unexpected.txt || true
           if [ -s /tmp/unexpected.txt ]; then

@@ -10,7 +10,7 @@ ML-KEM and ML-DSA PKCS#8 encoders free a populated private-key buffer with a bar
 with the unparsed PKCS#8 private key. The fourth is a constant-time test-harness
 defect in `crypto/ml_kem/ml_kem.c`, where the secret-poisoning extent is
 hard-coded to rank 2 and so under-covers ML-KEM-768 and ML-KEM-1024. The first
-three cannot be fixed locally because [ADR-0005](adr/ADR-0005-crypto-layer-delegation.md)
+three cannot be fixed locally because [](adr/-crypto-layer-delegation.md)
 keeps `providers/implementations/` byte-identical to upstream, and we have
 measured that they are — every file named here is bit-for-bit the 3.5.7 subtree
 import. The fourth *is* inside our seam and is therefore fixable, but it affects
@@ -21,7 +21,7 @@ tracking record and the basis for the upstream report.
 ## Scope
 
 - **Baseline:** OpenSSL 3.5.7, imported as a `git subtree` at `openssl/`
-  ([ADR-0004](adr/ADR-0004-openssl-baseline-3.5.7.md)). Import commit `5943b28`
+ ([](adr/-openssl-baseline-3.5.7.md)). Import commit `5943b28`
   ("Merge commit `4ca9ad0b47863bb7f27e2e4f86dd49ce3a5e0630` as 'openssl'"), which
   squashes upstream `8cf17aa`. `openssl/include/openssl/opensslv.h:90` reads
   `OPENSSL_VERSION_STR "3.5.7"`.
@@ -42,7 +42,7 @@ tracking record and the basis for the upstream report.
   decided elsewhere; the full CSP analysis is in
   [zeroization-analysis.md](zeroization-analysis.md) and the constant-time
   analysis in [side-channel-analysis.md](side-channel-analysis.md).
-- **SLH-DSA:** not delegated ([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)).
+- **SLH-DSA:** not delegated ([](adr/-slh-dsa-stays-upstream.md)).
   `openssl/crypto/slh_dsa/` was **not audited** in this pass.
 
 ### Evidence discipline
@@ -56,7 +56,7 @@ Every claim below is tagged:
 
 ### Why these cannot be fixed locally
 
-[ADR-0005](adr/ADR-0005-crypto-layer-delegation.md) lines 28-29 state the
+[](adr/-crypto-layer-delegation.md) lines 28-29 state the
 decision verbatim:
 
 > Leave `providers/implementations/{keymgmt,signature,kem,encode_decode}`
@@ -79,7 +79,7 @@ $ git show 4ca9ad0:providers/implementations/encode_decode/ml_kem_codecs.c \
 The same `diff` returns identical for `ml_dsa_codecs.c`, `encode_key2any.c` and
 `keymgmt/ml_kem_kmgmt.c`. The entire subtree's last-touching commit is the import
 itself. Patching any of these files converts a zero-delta directory into a
-maintained fork, which is the cost ADR-0005 was written to avoid.
+maintained fork, which is the cost was written to avoid.
 
 ---
 
@@ -225,7 +225,7 @@ allocators in the Sprint 3 zeroization work.
 ### Why we are not fixing it locally
 
 `ml_kem_codecs.c` is byte-identical to the 3.5.7 import (verified above) and
-sits in the directory ADR-0005 pins as untouched. Editing it would put the first
+sits in the directory pins as untouched. Editing it would put the first
 QudoSSL delta into `providers/implementations/`, which changes the character of
 the fork and the diff a lab is asked to review. The function is also outside the
 FIPS module, so the local fix would not improve the certified boundary.
@@ -342,7 +342,7 @@ exceptions.
 ### Why we are not fixing it locally
 
 Same reason as UD-1: both files are byte-identical to the 3.5.7 import, both are
-inside the ADR-0005 no-touch directory, and neither is in the FIPS module.
+inside the no-touch directory, and neither is in the FIPS module.
 
 ### Proposed disposition
 
@@ -424,7 +424,7 @@ ordinary key loading rather than an error path.
 
 `ml_kem_kmgmt.c` is byte-identical to the import (`diff` against
 `4ca9ad0:providers/implementations/keymgmt/ml_kem_kmgmt.c` returns nothing) and is
-inside the ADR-0005 no-touch set.
+inside the no-touch set.
 
 ### Proposed disposition
 
@@ -591,7 +591,7 @@ action is a backport request, not a new bug report.
 
 Listed so the upstream report is complete and so nothing is lost, but excluded
 from the register above because their disposition belongs elsewhere — chiefly
-because they sit in `openssl/crypto/`, inside the seam ADR-0005 already opens, so
+because they sit in `openssl/crypto/`, inside the seam already opens, so
 we *can* fix them locally and in two cases already have.
 
 - **`openssl/crypto/ml_dsa/ml_dsa_key.c` — already fixed locally.** Upstream 3.5.7
@@ -646,7 +646,7 @@ we *can* fix them locally and in two cases already have.
   asymmetry with the ML-KEM version is real and is worth mentioning in the
   upstream report as supporting evidence that UD-1 is an oversight.
 - **`openssl/crypto/slh_dsa/`** — not audited. SLH-DSA is not delegated
-  ([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)) but its private keys are
+ ([](adr/-slh-dsa-stays-upstream.md)) but its private keys are
   still module CSPs.
 
 ---
@@ -782,7 +782,7 @@ one-line patch" is uncontroversial.
    assert that the bytes have been recovered from freed memory, and no such
    experiment is planned.
 7. **`openssl/crypto/slh_dsa/` has not been audited** for the same defect class.
-   It is outside delegation ([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md))
+ It is outside delegation ([](adr/-slh-dsa-stays-upstream.md))
    but inside the module.
 8. **The full encode/DER/PEM output chain has not been audited.**
    `encode_key2any.c:102` and `:165` show the same pattern one level above UD-2;

@@ -82,7 +82,7 @@ function Build-QudoPqc {
 
     # STANDARD build -- qudo-pqc-lib supplies algorithm math only. OpenSSL owns
     # POST, CAST, PCT, integrity and the approved DRBG under crypto-layer
-    # delegation. No -DQUDO_FIPS_MODULE. See ADR-0009 and build_libqudo_pqc.sh.
+    # delegation. No -DQUDO_FIPS_MODULE. See build_libqudo_pqc.sh.
     # Generator MUST be "NMake Makefiles" -- that is the only Windows
     # configuration qudo-pqc-lib supports and tests (see its build_windows.bat,
     # which sets GENERATOR=NMake Makefiles for every MSVC path). The multi-config
@@ -97,7 +97,7 @@ function Build-QudoPqc {
     if (-not (Select-String -Path $cml -Pattern 'QUDO_PQC_MATH_ONLY' -Quiet)) {
         throw @"
 the qudo-pqc-lib subtree does not support QUDO_PQC_MATH_ONLY.
-Re-pin the subtree to a revision that has it (see ADR-0009).
+Re-pin the subtree to a revision that has it.
 "@
     }
 
@@ -135,7 +135,7 @@ function Build-OpenSsl {
     $cfg = @('Configure', 'VC-WIN64A', "--prefix=$Prefix")
     if ($Fips) { $cfg += 'enable-fips' }
 
-    # Crypto-layer delegation (ADR-0005). These are NOT optional: without them
+    # Crypto-layer delegation. These are NOT optional: without them
     # Configure never defines QUDO_PQC_DELEGATE, so the build silently compiles
     # upstream OpenSSL's own ML-KEM/ML-DSA math and the resulting binaries are
     # not QudoSSL at all -- a green Windows job that validated the wrong

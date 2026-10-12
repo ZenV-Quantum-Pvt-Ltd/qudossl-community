@@ -3,10 +3,10 @@
 # Stage 1 of the QudoSSL build: compile qudo-pqc-lib as a STANDARD static
 # archive. qudo-pqc-lib supplies the PQC algorithm math and nothing else.
 #
-# Under crypto-layer delegation (ADR-0005 / D2), OpenSSL owns the entire FIPS
+# Under crypto-layer delegation, OpenSSL owns the entire FIPS
 # apparatus -- POST KATs, CAST, PCT, integrity HMAC, state machine and the
 # approved DRBG. Building qudo-pqc-lib as a FIPS module would link a second,
-# redundant copy of that machinery toward the cert boundary. See ADR-0009.
+# redundant copy of that machinery toward the cert boundary.
 #
 # Consequences for callers, which are load-bearing:
 #
@@ -14,7 +14,7 @@
 #     services out of the boundary: its POST, PCT, integrity check, CTR-DRBG,
 #     AES and HMAC are not compiled at all. Merely omitting QUDO_FIPS_MODULE is
 #     NOT sufficient -- the entanglement is gated on QUDO_COMBINED_BUILD, which
-#     was unconditional. See ADR-0009's Correction section.
+#     was unconditional.
 #
 #   * NO -DQUDO_FIPS_MODULE, and none of the boundary-dedupe flags: all of them
 #     hard-require it upstream, and math-only supersedes them. Epic 2 is moot.
@@ -29,7 +29,7 @@
 #         QUDO_KEM_encaps_derand            (const randomness[32] IN)
 #         QUDO_KEM_decaps                   (deterministic)
 #         mldsa_ref{44,65,87}_keypair_internal  (+ _neon / _avx2 variants)
-#     (SLH-DSA is not delegated -- see ADR-0010.)
+#     (SLH-DSA is not delegated; it stays upstream.)
 #     NOTE: QUDO_KEM_keypair_derand is NOT in that list -- despite the name its
 #     seed argument is an OUTPUT, so it draws randomness internally.
 #     Calling the plain keypair() variants would take randomness from

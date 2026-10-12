@@ -10,7 +10,7 @@ the **QudoSSL Cryptographic Module** (the "module"). It is a companion to
 Where this guide and the Security Policy differ, the Security Policy governs.
 
 > **Supersedes the vendor guide.** The `qudo-pqc-lib` repository ships a
-> `CRYPTO_OFFICER_GUIDANCE.md` that predates crypto-layer delegation (ADR-0005)
+> `CRYPTO_OFFICER_GUIDANCE.md` that predates crypto-layer delegation
 > and describes qudo-pqc-lib as a standalone FIPS module. That document does
 > **not** govern this module. In QudoSSL, qudo-pqc-lib supplies ML-KEM/ML-DSA
 > *math only*; every FIPS service is OpenSSL's. This guide governs.
@@ -34,9 +34,9 @@ invoked (Security Policy §4.3).
 
 | Field | Value |
 |---|---|
-| Module name | **QudoSSL FIPS Provider** — as reported by `qudossl list -providers` (ADR-0013) |
-| Version | **3.5.7+qudo-1.0.0** — the provider's `build info` field. `qudo-pqc-lib` is pinned to tag `v1.0.0`; the branch-head pin that blocked this is resolved (ADR-0013, `docs/subtree-pins.md`). |
-| FIPS module file | `fips.so` (Linux) · `fips.dylib` (macOS) · `fips.dll` (Windows) — **not** renamed to `qudo-fips.so` (ADR-0006) |
+| Module name | **QudoSSL FIPS Provider** — as reported by `qudossl list -providers` |
+| Version | **3.5.7+qudo-1.0.0** — the provider's `build info` field. `qudo-pqc-lib` is pinned to tag `v1.0.0`; the branch-head pin that blocked this is resolved (`docs/subtree-pins.md`). |
+| FIPS module file | `fips.so` (Linux) · `fips.dylib` (macOS) · `fips.dll` (Windows) — **not** renamed to `qudo-fips.so` |
 | Tested OEs | Linux x86-64, Linux aarch64, macOS arm64, Windows x64 |
 
 > **Only the FIPS provider is the validated module.** Every provider QudoSSL
@@ -54,7 +54,6 @@ invoked (Security Policy §4.3).
 >
 > Approved operation requires the `fips` and `base` providers with
 > `default_properties = fips=yes`, and the default provider **not** activated.
-> See ADR-0013.
 | Base | OpenSSL 3.5.7 FIPS provider, tag `openssl-3.5.7` |
 
 The module is only the module described here when it is the **delegated** build.
@@ -82,7 +81,7 @@ make -C build all           # stage 1: qudo-pqc-lib (math-only) → stage 2: Ope
 make -C build install        # installs to $(PREFIX); FIPS module → $(PREFIX)/lib/ossl-modules/fips.<ext>
 ```
 
-Because the FIPS module keeps its upstream filename `fips.<ext>` (ADR-0006), its
+Because the FIPS module keeps its upstream filename `fips.<ext>`, its
 installed path `<libdir>/ossl-modules/fips.<ext>` is **filename-identical to a
 stock OpenSSL FIPS provider**. The CO **must** confirm the install does not
 overwrite, and is not shadowed by, a system OpenSSL FIPS provider on the host.
@@ -242,6 +241,4 @@ integrity check and is outside the validated configuration.
 - [`docs/security-policy.md`](security-policy.md) — the governing Security Policy
 - [`docs/patch-management-policy.md`](patch-management-policy.md)
 - [`docs/subtree-pins.md`](subtree-pins.md), [`docs/reproducibility.md`](reproducibility.md)
-- ADR-0005 (crypto-layer delegation), ADR-0006 (fips.so, no rename),
-  ADR-0009 (math-only build), ADR-0010 (SLH-DSA upstream) — `docs/adr/`
 - FIPS 140-3 / ISO/IEC 19790:2012; SP 800-90A; FIPS 203/204/205

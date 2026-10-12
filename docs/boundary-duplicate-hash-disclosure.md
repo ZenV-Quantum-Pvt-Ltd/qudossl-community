@@ -19,7 +19,7 @@ two algorithms and is not exposed as a service by any name. We measured 121
 qudo-supplied hash symbols across 22 linked object-file instances inside the
 module, approximately 23.7 KB of the 2,011,976-byte module (~1.2%). We are
 disclosing this because FIPS 140-3 cert review treats two equivalent approved
-functions inside one boundary as a finding, and because ADR-0003 — the record
+functions inside one boundary as a finding, and because — the record
 that first flagged it — describes only part of what is actually there. This
 document states what is duplicated, why one class of it cannot be removed and
 the other class can, what evidence shows correctness is unaffected, what the
@@ -36,16 +36,16 @@ arm64 operational environment, at the subtree pins recorded in
 sampling) is not duplicated in any relevant sense and is not discussed here
 except where a hash feeds it. Randomness, integrity, self-test orchestration
 and the FIPS state machine are single-sourced from OpenSSL and are covered by
-[ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md); this document confirms by
+[](adr/-qudo-pqc-standard-build.md); this document confirms by
 measurement that no qudo-supplied component of those services is inside the
 module, but does not otherwise analyse them.
 
 **Relationship to prior records.** This document supersedes the
 "Consequences" bullet in
-[ADR-0003](adr/ADR-0003-epic2-boundary-dedupe-closure.md) that reads *"the
+[](adr/-epic2-boundary-dedupe-closure.md) that reads *"the
 boundary retains qudo-pqc's inlined Keccak … it is PQC algorithm code, not a
 separately claimed SHA-3 implementation."* That statement remains true, but it
-is not complete — see §2.4. ADR-0003 is itself marked superseded by ADR-0009;
+is not complete — see §2.4. is itself marked superseded by
 its dedupe reasoning was retained, and this document is the measured version of
 that reasoning.
 
@@ -125,7 +125,7 @@ appears.
 
 ### 1.2 Class A — qudo's per-family SHAKE/Keccak (92 symbols)
 
-This is the class ADR-0003 described. It is the FIPS 202 code that
+This is the class described. It is the FIPS 202 code that
 `qudo-pqc-lib` compiles *into* each PQC algorithm, once per algorithm family and
 once per CPU backend, with a mangled symbol prefix so the copies do not collide.
 All 92 are defined in `fips.dylib`:
@@ -163,11 +163,11 @@ Approximate extent: ~14.4 KB.
 
 ### 1.3 Class B — qudo's generic SHA-2/SHA-3 API (29 symbols)
 
-**This class is not described in ADR-0003 and is new information for the
+**This class is not described in and is new information for the
 laboratory.** It is a standalone, generically named SHA-2 and SHA-3
 implementation — not inlined into anything — sourced from the *SLH-DSA* subtree
 even though SLH-DSA is deliberately not delegated
-([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)).
+([](adr/-slh-dsa-stays-upstream.md)).
 
 Sources: `qudo-pqc-lib/qudo-slhdsa/slhdsa-native/{sha2_256.c, sha2_512.c,
 sha3_api.c, sha3_f1600.c}`.
@@ -241,7 +241,7 @@ Measured, for completeness, because it bounds the finding:
   and no second integrity check inside the boundary.
 - **Zero** qudo SLH-DSA in the module: `slh_sha2.c.o`, `slh_shake.c.o`,
   `slh_dsa.c.o`, `slhdsa_wrapper.c.o`, `slh_prehash.c.o` all have exported
-  symbols and none appears in `fips.dylib`. This confirms ADR-0010's reduction
+ symbols and none appears in `fips.dylib`. This confirms's reduction
   claim by measurement.
 - `openssl/crypto/slh_dsa/` is byte-identical to upstream `openssl-3.5.7`:
   `git diff --name-only 5943b28 HEAD -- openssl/` returns exactly four files —
@@ -351,18 +351,18 @@ freezing that pin on an immutable tag before the certification branch. We offer
 it to the laboratory as an available remediation and will act on it if the lab
 prefers the residue reduced (§6, §7).
 
-### 2.4 What ADR-0003 got right, and where it is incomplete
+### 2.4 What got right, and where it is incomplete
 
 Verified against the tree rather than restated:
 
-| ADR-0003 statement | Verification |
+| statement | Verification |
 |---|---|
 | "**2.2** (host hashes) — **not routable.** Keccak is inlined into the PQC algorithm implementations for performance; there is no call seam to redirect." | **Confirmed.** No seam exists (§2.1); the batched-SHAKE argument strengthens it (§2.2). |
-| "**2.3** (host AES) — **no-op.** AES is only referenced by qudo-pqc's own DRBG" | **Confirmed by outcome.** Zero qudo AES symbols are in the module (§1.4), though under [ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md) this is achieved by the `QUDO_PQC_MATH_ONLY` build never compiling them, not by the mechanism ADR-0003 anticipated. |
+| "**2.3** (host AES) — **no-op.** AES is only referenced by qudo-pqc's own DRBG" | **Confirmed by outcome.** Zero qudo AES symbols are in the module (§1.4), though under [](adr/-qudo-pqc-standard-build.md) this is achieved by the `QUDO_PQC_MATH_ONLY` build never compiling them, not by the mechanism anticipated. |
 | "the boundary retains qudo-pqc's **inlined Keccak**. This must be declared to the lab … it is PQC algorithm code, not a separately claimed SHA-3 implementation." | **True but incomplete.** It describes Class A only. It omits Class B entirely — 29 generic, *non*-inlined SHA-2/SHA-3 symbols that are not PQC algorithm code and are not called by any delegated operation. |
-| "AES/SHA/HMAC dedupe is achieved through the Epic 5 build configuration" | **Superseded.** ADR-0009 replaced Epic 5's flag work with `QUDO_PQC_MATH_ONLY`; ADR-0003 is marked superseded on its own face. The dedupe that was achieved is the FIPS-infrastructure dedupe (§1.4), not hash dedupe. |
+| "AES/SHA/HMAC dedupe is achieved through the Epic 5 build configuration" | **Superseded.** replaced Epic 5's flag work with `QUDO_PQC_MATH_ONLY`; is marked superseded on its own face. The dedupe that was achieved is the FIPS-infrastructure dedupe (§1.4), not hash dedupe. |
 
-Restating ADR-0003 to the laboratory unchanged would understate the finding.
+Restating to the laboratory unchanged would understate the finding.
 That is the reason this document exists.
 
 ## 3. Why this does not affect correctness
@@ -454,7 +454,7 @@ configuration and is measured absent (§1.4).
 - **There is one FIPS state machine, one approved DRBG, one integrity check,
   one indicator authority and one self-test orchestrator** — all OpenSSL's.
   Measured: zero qudo FIPS-infrastructure symbols in the module (§1.4). This is
-  the condition ADR-0009 set out to establish and it holds.
+ the condition set out to establish and it holds.
 - **No CSP crosses into the duplicated code except as algorithm-internal
   intermediate state.** The values qudo's Keccak sees are the ML-KEM/ML-DSA
   seeds, coefficients and sampling streams already covered by those algorithms'
@@ -463,7 +463,7 @@ configuration and is measured absent (§1.4).
   is a seeded/derandomised entry point taking randomness from OpenSSL's approved
   DRBG as an argument — `QUDO_KEM_keypair_from_seed`, `QUDO_KEM_encaps_derand`,
   `QUDO_MLDSA_keypair_internal`, `QUDO_MLDSA_sign_internal` (§1.3 item 4, and
-  [ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md) "The rule this creates").
+ [](adr/-qudo-pqc-standard-build.md) "The rule this creates").
 
 ### 4.2 What it costs — stated plainly
 
@@ -526,7 +526,7 @@ location.
 |---|---|---|
 | All fetchable digest services (SHA-1, SHA-2 family, SHA-3 family, SHAKE, KECCAK-KMAC) | **OpenSSL only** | 15 provided digests, all `@ fips` (§1.1) |
 | HMAC, KDFs, DRBG, RSA/ECDSA/EdDSA message digesting, module integrity | **OpenSSL only** | No qudo symbol is reachable from these paths; zero qudo FIPS-infra symbols (§1.4) |
-| **SLH-DSA** (all 12 parameter sets), keygen/sign/verify | **OpenSSL only** | Not delegated; `crypto/slh_dsa/` byte-identical to upstream; zero qudo SLH-DSA symbols in module ([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md), §1.4) |
+| **SLH-DSA** (all 12 parameter sets), keygen/sign/verify | **OpenSSL only** | Not delegated; `crypto/slh_dsa/` byte-identical to upstream; zero qudo SLH-DSA symbols in module ([](adr/-slh-dsa-stays-upstream.md), §1.4) |
 | **ML-KEM** keygen — lattice + H/G/PRF/A-matrix sampling | **qudo Class A** (`_mlkem_{ref,neon}_*`) | `ml_kem.c:2220` `qudo_genkey` → `:2237` `QUDO_KEM_keypair_from_seed` |
 | **ML-KEM** encapsulation | **qudo Class A** | `ml_kem.c:2283` `qudo_encap` → `:2302` `QUDO_KEM_encaps_derand` |
 | **ML-KEM** decapsulation (incl. implicit rejection) | **qudo Class A** | `ml_kem.c:2318` `qudo_decap` → `:2342` `QUDO_KEM_decaps` |
@@ -584,7 +584,7 @@ We ask the laboratory to accept the following four propositions.
 Supporting history we place on the record voluntarily: SLH-DSA delegation was
 implemented, tested green, measured at 1.6× slower than OpenSSL's, and then
 **reverted specifically to shrink this finding**
-([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)). ADR-0010 records that
+([](adr/-slh-dsa-stays-upstream.md)). records that
 reversal as removing 79 `QUDO_SLHDSA` symbols plus the `slh_sha2` / `slh_shake`
 objects from the module. Re-measured today at the current pin: the archive
 defines **94** `_QUDO_SLHDSA*` symbols and **zero** of them are in `fips.dylib`;
@@ -670,10 +670,10 @@ submission. Items **4–7** are recorded so they are not lost.
 
 ## References
 
-- [ADR-0003 — Epic 2 boundary dedupe closes as Story 2.1 + Story 2.5](adr/ADR-0003-epic2-boundary-dedupe-closure.md) (superseded; the origin of this disclosure)
-- [ADR-0005 — Crypto-layer delegation](adr/ADR-0005-crypto-layer-delegation.md)
-- [ADR-0009 — qudo-pqc-lib is consumed as a standard build, not a FIPS module](adr/ADR-0009-qudo-pqc-standard-build.md)
-- [ADR-0010 — SLH-DSA is not delegated; OpenSSL's implementation is used](adr/ADR-0010-slh-dsa-stays-upstream.md)
-- [design-errata.md](design-errata.md) — §6.1, §15.2 and §22.3 corrections
+- [ — Epic 2 boundary dedupe closes as Story 2.1 + Story 2.5](adr/-epic2-boundary-dedupe-closure.md) (superseded; the origin of this disclosure)
+- [ — Crypto-layer delegation](adr/-crypto-layer-delegation.md)
+- [ — qudo-pqc-lib is consumed as a standard build, not a FIPS module](adr/-qudo-pqc-standard-build.md)
+- [ — SLH-DSA is not delegated; OpenSSL's implementation is used](adr/-slh-dsa-stays-upstream.md)
+- [] — §6.1, §15.2 and §22.3 corrections
 - [subtree-pins.md](subtree-pins.md) — the exact upstream commits measured
 - [reproducibility.md](reproducibility.md) — per-OE build determinism status

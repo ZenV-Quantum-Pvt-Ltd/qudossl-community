@@ -1,6 +1,7 @@
 #!/bin/sh
 # Assert the built artifacts really are QudoSSL -- i.e. that crypto-layer
-# delegation (ADR-0005) is compiled in and linked, not merely configured.
+# delegation -- PQC maths handled at the crypto layer rather than behind a
+# provider adapter -- is compiled in and linked, not merely configured.
 #
 # Why this exists: the Windows job passed for an entire sprint while building
 # stock upstream OpenSSL. build.ps1 built the qudo archive, located it, and

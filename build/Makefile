@@ -8,12 +8,12 @@
 #   make -C build help       list targets
 #
 # Two stages:
-#   1. CMake builds qudo-pqc-lib/ into libqudo-pqc.a (boundary mode, ADR-0003)
+#   1. CMake builds qudo-pqc-lib/ into libqudo-pqc.a (boundary mode)
 #   2. OpenSSL is configured and built from openssl/
 #
 # Stage 2 configures OpenSSL against stage 1's archive, so the PQC entry points
 # in crypto/ml_kem, crypto/ml_dsa and crypto/slh_dsa delegate to qudo-pqc
-# (ADR-0005). Static linkage is mandatory: the integrity HMAC must cover the
+# at the crypto layer. Static linkage is mandatory: the integrity HMAC must cover the
 # algorithm code in one .text region (design 12.3 RULE).
 
 SHELL := /bin/bash
@@ -191,7 +191,7 @@ repro-check:
 
 # ---- install ----------------------------------------------------------------
 # Installs OpenSSL into $(PREFIX). The FIPS module ships as fips.so/.dylib --
-# NOT renamed (ADR-0006) -- so it lands at $(PREFIX)/lib/ossl-modules/fips.*
+# NOT renamed -- so it lands at $(PREFIX)/lib/ossl-modules/fips.*
 # exactly as upstream would place it.
 install: openssl
 	$(MAKE) -C $(OPENSSL_DIR) install DESTDIR=$(DESTDIR)
@@ -204,7 +204,7 @@ install_sw: openssl
 	@$(MAKE) --no-print-directory install-cli-name
 
 # The product's CLI is `qudossl`, installed as a wrapper next to the upstream
-# `openssl` binary (ADR-0013).
+# `openssl` binary.
 #
 #   openssl  the real binary, byte-identical behaviour to upstream. Every
 #            existing script, Makefile and --with-openssl build keeps working,

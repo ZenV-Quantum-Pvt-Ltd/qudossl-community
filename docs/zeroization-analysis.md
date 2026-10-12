@@ -15,7 +15,7 @@ sprint alongside one zeroization-trigger divergence QudoSSL had introduced
 itself; all three fixes are confirmed present in both the FIPS-module and the
 libcrypto object. The remaining five sit in
 `openssl/providers/implementations/`, which
-[ADR-0005](adr/ADR-0005-crypto-layer-delegation.md) keeps byte-identical to
+[](adr/-crypto-layer-delegation.md) keeps byte-identical to
 upstream and which the `upstream-parity` CI gate actively forbids us from
 touching; none of them is inside the FIPS module, and they are being reported
 upstream and picked up on the next sync rather than patched locally. Two further points a lab will want addressed are
@@ -36,7 +36,7 @@ qudo-pqc-lib's math cores as the delegated implementation.
 **Out of scope.**
 
 - **SLH-DSA.** Not delegated, per
-  [ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md). `openssl/crypto/slh_dsa/`
+ [](adr/-slh-dsa-stays-upstream.md). `openssl/crypto/slh_dsa/`
   was not audited in this pass. Its private keys are still module CSPs; see
   Open items.
 - **Classical algorithm CSPs** (RSA, EC, DRBG state, TLS traffic keys). These
@@ -148,7 +148,7 @@ guard at `:57-76`). qudo-pqc's own zeroize-on-PCT-failure blocks are inside
 `#ifdef QUDO_FIPS_MODULE` (`qudo-pqc-lib/qudo-mlkem/src/mlkem_wrapper.c:905-915`,
 `:966-973`, `:1009-1016`) and are therefore **not compiled**. This is correct
 under the boundary rule — OpenSSL owns the PCT
-([ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md)), and the delegated ML-DSA
+([](adr/-qudo-pqc-standard-build.md)), and the delegated ML-DSA
 PCT is OpenSSL's, implemented at `openssl/crypto/ml_dsa/ml_dsa_key.c:398` — but
 the Security Policy must state it rather than leave a lab to discover the
 `#ifdef`. The unconditional mlkem-native / mldsa-native zeroization above is
@@ -209,7 +209,7 @@ what the FIPS module contains. `nm -a` on
 ## 3. Defects fixed this sprint
 
 All three are in `openssl/crypto/ml_dsa/ml_dsa_key.c`, inside the delegation
-seam that [ADR-0005](adr/ADR-0005-crypto-layer-delegation.md) permits us to
+seam that [](adr/-crypto-layer-delegation.md) permits us to
 edit and that the `upstream-parity` CI gate whitelists
 (`.github/workflows/ci.yml:106` allows divergence under
 `crypto/ml_kem/`, `crypto/ml_dsa/`, and `Configure` only). Two are upstream
@@ -389,7 +389,7 @@ invocation, not a corner case.
 
 **Why we are not fixing it here.** This file is in
 `openssl/providers/implementations/encode_decode/`, which
-[ADR-0005](adr/ADR-0005-crypto-layer-delegation.md) commits to leaving
+[](adr/-crypto-layer-delegation.md) commits to leaving
 untouched, and the commitment is machine-enforced: the `upstream-parity` job at
 `.github/workflows/ci.yml:84-113` diffs the whole `openssl/` subtree against
 `refs/tags/openssl-3.5.7` and **fails** on any changed file outside
@@ -693,14 +693,14 @@ needs Venkatesh's sign-off, not a unilateral edit.
 8. **The `upstream-parity` gate cited as policy evidence in Section 4 may never
    have executed.** `.github/workflows/ci.yml:14-17` triggers only on pull
    requests targeting `main`, and Sprint 2 merged to `dev`. The gate encodes
-   the ADR-0005 constraint correctly; whether it has ever run is a separate,
+ the constraint correctly; whether it has ever run is a separate,
    open Story 3.0 question. We also did **not** fetch upstream `openssl-3.5.7`
    to byte-compare the subtree ourselves; the assertion that
    `providers/implementations/` is stock rests on the gate's policy plus a clean
    `git status`, not on a byte comparison we performed.
 9. **Object files can lag their sources.** `openssl/crypto/ml_kem/ml_kem.c` was
    modified during this analysis by commit `033cab7` (a comment-only insertion
-   of 10 lines documenting [ADR-0011](adr/ADR-0011-ml-kem-dead-math-already-eliminated.md));
+ of 10 lines documenting [](adr/-ml-kem-dead-math-already-eliminated.md));
    the ML-KEM line citations here were re-verified against the post-commit file,
    but the ML-KEM objects that were objdump'd predate it. Since the change is
    comment-only the relocation tallies are unaffected — but the general point
@@ -716,14 +716,14 @@ needs Venkatesh's sign-off, not a unilateral edit.
 **Scope gaps**
 
 11. **SLH-DSA not audited.** Undelegated per
-    [ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md), but its private keys
+ [](adr/-slh-dsa-stays-upstream.md), but its private keys
     are still module CSPs. `openssl/crypto/slh_dsa/` needs the same pass before
     the CSP register is complete.
 12. **The Security Policy needs a sentence on the math-only build.**
     qudo-pqc's zeroize-on-PCT-failure is compiled out because
     `QUDO_FIPS_MODULE` is deliberately undefined; OpenSSL owns the PCT. That is
     correct under the boundary rule but must be written down, either in
-    [ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md) or in the CSP register.
+ [](adr/-qudo-pqc-standard-build.md) or in the CSP register.
 13. **Secure-heap asymmetry.** The ML-KEM export path uses
     `OPENSSL_secure_zalloc` / `OPENSSL_secure_clear_free`
     (`openssl/providers/implementations/keymgmt/ml_kem_kmgmt.c:275-324`); the
