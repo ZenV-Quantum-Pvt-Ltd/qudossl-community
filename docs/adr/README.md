@@ -1,8 +1,8 @@
 # Architecture Decision Records
 
 Each ADR records one decision that overrides or narrows the frozen design
-(`design/QudoSSL_Design.docx`). Precedence, per `CLAUDE.md`:
-**post-freeze ADR → v1.0 Decision Log (D1–D5) → design body.**
+document, which is held internally and is not part of this distribution.
+Precedence: **post-freeze ADR → v1.0 Decision Log (D1–D5) → design body.**
 `docs/design-errata.md` maps the affected design sections to the deciding ADR.
 
 | ADR | Decision | Status |

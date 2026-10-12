@@ -15,10 +15,8 @@ qudossl/
 ├── build/              top-level build wrapper
 ├── ci/                 CI configuration
 ├── docs/               ADRs and engineering docs
-├── cert/               CMVP submission package
-├── reproducible-build/ pinned-toolchain build kit
-├── design/             design reference and build plan
-└── sprint/             sprint plans
+├── benchmark/          benchmark harnesses and scripts
+└── reproducible-build/ pinned-toolchain build kit
 ```
 
 Both `openssl/` and `qudo-pqc-lib/` are **git subtrees**, not submodules. A
@@ -461,11 +459,6 @@ make TARGET=linux-glibc USE_OPENSSL=1 \
 
 ## Documentation
 
-- `docs/qudossl-current-state.md` — **living project status** (headline, PQC
-  delegation state, sprint status, cert/lab engagement). Start here for a
-  snapshot.
-- `design/QudoSSL_Design.docx` — architecture and build plan. Read the v1.0
-  Decision Log first; it overrides the body. See `CLAUDE.md` for precedence.
 - `docs/design-errata.md` — the authoritative section-by-section delta between
   the frozen design and the decisions in force. Read before implementing from
   any design section.
@@ -473,9 +466,8 @@ make TARGET=linux-glibc USE_OPENSSL=1 \
 - `docs/branching.md` — branch model and cert-branch rules
 - `docs/reproducibility.md`, `docs/subtree-pins.md` — reproducible-build notes
   and the pinned subtree SHAs
-- `sprint/` — sprint plans and change logs
 
-Certification evidence (Sprint 3):
+Certification evidence:
 
 - `docs/interop-report.md` — cross-implementation PQC TLS interop results.
   Read §1 before running any interop yourself: the obvious reference peer on a
@@ -485,18 +477,17 @@ Certification evidence (Sprint 3):
   defects found and fixed
 - `docs/side-channel-analysis.md` — constant-time posture. States plainly that
   no measured evidence exists yet.
-- `docs/acvp-status.md` — what ACVP coverage already exists and what does not
 - `docs/boundary-duplicate-hash-disclosure.md` — formal disclosure of the
   duplicate SHA-2/Keccak implementations inside the boundary
 - `docs/upstream-defects.md` — upstream OpenSSL defects we deliberately do not
   fix locally, tracked for upstream report
 
-Certification submission (Sprint 4, in progress):
+Certification submission, in progress. These are working drafts with unresolved
+items, published for transparency rather than as a statement of certified status:
 
-- `docs/security-policy.md` — FIPS 140-3 non-proprietary Security Policy (DRAFT v0.1)
-- `docs/crypto-officer-guide.md` — Crypto Officer / User Guide (DRAFT v0.1)
-- `docs/patch-management-policy.md` — patch-management and maintenance policy (DRAFT v0.1)
-- `docs/qudo-pqc-lib-release-tag-proposal.md` — proposal to tag qudo-pqc-lib for the cert freeze
+- `docs/security-policy.md` — FIPS 140-3 non-proprietary Security Policy (draft)
+- `docs/crypto-officer-guide.md` — Crypto Officer / User Guide (draft)
+- `docs/patch-management-policy.md` — patch-management and maintenance policy (draft)
 
 ## Licence
 

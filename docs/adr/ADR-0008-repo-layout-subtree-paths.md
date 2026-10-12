@@ -20,8 +20,7 @@ The subtree mechanism itself is unchanged.
 qudossl/
 ├── openssl/       <- git subtree, tag openssl-3.5.7
 ├── qudo-pqc-lib/  <- git subtree, pinned release SHA
-├── build/ ci/ docs/ cert/ reproducible-build/
-└── design/ sprint/
+└── build/ ci/ docs/ benchmark/ reproducible-build/
 ```
 
 ## Rationale
