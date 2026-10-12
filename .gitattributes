@@ -10,3 +10,22 @@ qudo-pqc-lib/**     linguist-vendored=true
 # Keep line endings sane for the Windows build path.
 *.ps1  text eol=crlf
 *.sh   text eol=lf
+
+# Binary test fixtures must never be line-ending converted.
+#
+# Upstream OpenSSL carries these rules in its own .gitattributes, but that file
+# never reached the vendored subtree: upstream marks `.*` as export-ignore, so
+# `git archive` drops every dotfile when the subtree is taken. Without the
+# rules, a Windows checkout (Git for Windows defaults to core.autocrlf=true)
+# rewrites LF to CRLF inside the fixtures and every digest taken over them is
+# wrong — openssl/test/data.bin grows 128 -> 132 bytes, and the dgst, HMAC and
+# XOF recipes in test_dgst fail with values that look like a crypto fault.
+#
+# Measured: SHAKE-128 xoflen=64 over test/data.bin is
+#   bb565dac...8e4677  with LF   (what the test expects)
+#   71172feb...131b647 with CRLF (what Windows CI reported)
+*.bin  binary
+*.der  binary
+*.pfx  binary
+*.dat  binary
+openssl/fuzz/corpora/**  binary
