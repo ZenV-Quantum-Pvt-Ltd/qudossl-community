@@ -48,7 +48,7 @@ Group negotiation, handshake completion, and application-data flow.
   (`Signature Algorithm: ecdsa-with-SHA256`, `NIST CURVE: P-256`). The delegated ML-DSA
   signing path was not exercised by any handshake in this matrix.
 - SLH-DSA, which is deliberately not delegated per
-  [ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md). Confirmed in the built artifact:
+ [](adr/-slh-dsa-stays-upstream.md). Confirmed in the built artifact:
   `nm -u crypto/slh_dsa/libcrypto-shlib-*.o | grep -c QUDO` returns `0`, while
   `crypto/ml_dsa/libcrypto-shlib-ml_dsa_key.o` references `_QUDO_MLDSA_new`,
   `_QUDO_MLDSA_free`, `_QUDO_MLDSA_keypair_internal`.
@@ -217,7 +217,7 @@ compiler: cc -fPIC -arch arm64 -O3 -Wall ... -DQUDO_PQC_DELEGATE -DNDEBUG
 ```
 
 `-DQUDO_PQC_DELEGATE` is present, so the ML-KEM/ML-DSA delegation of
-[ADR-0005](adr/ADR-0005-crypto-layer-delegation.md) is compiled in.
+[](adr/-crypto-layer-delegation.md) is compiled in.
 
 ### 2.1 Candidate peers that were rejected, and why
 
@@ -256,7 +256,7 @@ third-party modules), and it is built lazily and skipped when absent, so the
 OpenSSL-only cases need no Go toolchain. BoringSSL and AWS-LC are the durable
 peers required to close the ≥3-peer exit gate (§ open items). See
 [`ci/interop/README.md`](../ci/interop/README.md) for the harness and
-[ADR-0012](adr/ADR-0012-interop-peers.md) for the peer-choice rationale.
+[](adr/-interop-peers.md) for the peer-choice rationale.
 
 Design properties that make the results auditable:
 
@@ -480,7 +480,7 @@ They are entered in the TLS group table at
 `openssl/providers/common/capabilities.c:88-93` and named at `:178-180`, `:157`,
 `:192-193`. That table is upstream OpenSSL's and is untouched by QudoSSL, consistent with
 the `providers/implementations/` boundary of
-[ADR-0005](adr/ADR-0005-crypto-layer-delegation.md) — delegation replaces the math beneath
+[](adr/-crypto-layer-delegation.md) — delegation replaces the math beneath
 these groups, not the group set itself.
 
 *Caveat on wording:* these six are the codepoints upstream OpenSSL assigns, measured from
@@ -787,7 +787,7 @@ ps aux | grep -E 's_server|goserver'                          # must be empty
 9. **The parity-baseline question is unresolved.** Story 3.2 names "stock OpenSSL 3.5" as the
    parity baseline, but only 3.6.1 is installed. Whether peering 3.5.7 against 3.6.1
    satisfies the parity intent, or whether an actual 3.5.x peer must be built, is a decision
-   for the lab pre-engagement. See [ADR-0004](adr/ADR-0004-openssl-baseline-3.5.7.md) for the
+ for the lab pre-engagement. See [](adr/-openssl-baseline-3.5.7.md) for the
    baseline rationale.
 10. **Shipping the pure ML-KEM groups is an open policy question.** MLKEM512/768/1024
     interoperate OpenSSL-to-OpenSSL, but no other peer tested offers them and they provide

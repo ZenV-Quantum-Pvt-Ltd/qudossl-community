@@ -33,7 +33,7 @@ to the ISO/IEC 19790 requirement areas.
 The following must be resolved during internal review and before submission:
 
 - Module version identifier is [TO BE CONFIRMED] — qudo-pqc-lib has no release tag and is pinned to branch head 73e5499b; a named release must be cut and re-pinned before the cert branch is frozen (docs/subtree-pins.md).
-- Exact certificate module name string is [TO BE CONFIRMED] — cert identity moved off the filename to the paperwork (ADR-0006).
+- Exact certificate module name string is [TO BE CONFIRMED] — cert identity moved off the filename to the paperwork.
 - Overall security level assumed Level 1 [TO BE CONFIRMED]; per-area levels stated at Level 1 pending laboratory confirmation.
 - Module embodiment classification [TO BE CONFIRMED: multi-chip standalone assumed].
 - Exact tested-platform build strings for all four OEs (Linux x86-64, Linux aarch64, macOS arm64, Windows x64) are [TO BE CONFIRMED].
@@ -41,7 +41,7 @@ The following must be resolved during internal review and before submission:
 - CMVP/CAVP certificate numbers and delivery mechanism are [TO BE CONFIRMED].
 - All boundary symbol measurements are from the macOS arm64 artifact only; per-OE symbol inventories (x86-64 uses AVX2 backends, differing symbol names/counts) are not yet produced (boundary-duplicate-hash-disclosure.md §7, open item 1).
 - Windows x64 reproducible-build determinism is not verified — a green two-build comparison is a prerequisite before that OE is submitted (docs/reproducibility.md).
-- Install-path collision between the module's stock filename fips.so/.dylib/.dll and a host system OpenSSL FIPS provider must be checked at integration (ADR-0006).
+- Install-path collision between the module's stock filename fips.so/.dylib/.dll and a host system OpenSSL FIPS provider must be checked at integration.
 - The FIPS module boundary source manifest (providers/fips.module.sources / build.info / fips.checksum) has not been amended to list the delegated qudo math; correcting it will change the module's own boundary definition (boundary-duplicate-hash-disclosure.md §4.2e, open item 3).
 - Module version identifier / cryptographic module name string is unset — qudo-pqc-lib is pinned to branch head main @ 73e5499b with no release tag (docs/subtree-pins.md); cut and pin a tag before the cert branch is frozen. [TO BE CONFIRMED]
 - All CAVP certificate numbers are [TO BE CONFIRMED]; per D3 no OpenSSL certificate is reused and no validation has completed.
@@ -60,7 +60,7 @@ The following must be resolved during internal review and before submission:
 - Overall Security Level is assumed Level 1 - [TO BE CONFIRMED: overall level]; confirm before finalising the trusted-channel and port statements.
 - Confirm with the laboratory whether a separate ISO 19790 control-output interface enumeration is required, or whether folding it into status/data output is acceptable.
 - Exact tested platform build strings for the four OEs (Linux x86-64, Linux aarch64, macOS arm64, Windows x64) are not derived here and are [TO BE CONFIRMED].
-- The installed-module path is filename-identical to a stock OpenSSL FIPS provider (fips.so); ADR-0006 flags an install-path collision check that should be reflected if the interfaces/delivery section references installation.
+- The installed-module path is filename-identical to a stock OpenSSL FIPS provider (fips.so); flags an install-path collision check that should be reflected if the interfaces/delivery section references installation.
 - Module version identifier is [TO BE CONFIRMED] — qudo-pqc-lib is pinned to main @ 73e5499b with no release tag, so the composite module version string cannot be fixed.
 - CAVP algorithm certificate numbers, CMVP certificate number, vendor name/contact, tested-platform build strings, and delivery mechanism are all [TO BE CONFIRMED].
 - Overall security level assumed 1 [TO BE CONFIRMED: overall level]; if higher, §4.3 must gain an authentication mechanism, strength claim, and authentication SSPs.
@@ -77,26 +77,26 @@ The following must be resolved during internal review and before submission:
 - Windows reproducibility (/Brepro) is not verified; a PowerShell equivalent of verify-reproducible.sh and a green two-build comparison are prerequisites.
 - Boundary source manifest (providers/fips.module.sources, fips/build.info, fips.checksum) does not list the linked qudo-pqc sources and must be corrected before submission — this changes the module's own boundary definition.
 - Whether processor algorithm accelerators (AES-NI/AVX2, ARMv8 SHA/NEON) are claimed as tested PAA/PAI, and the per-OE symbol inventories, are undecided.
-- Confirm the installed fips.so path cannot collide with a system OpenSSL FIPS provider on a host that also has one installed (ADR-0006).
+- Confirm the installed fips.so path cannot collide with a system OpenSSL FIPS provider on a host that also has one installed.
 - Overall validation Security Level is assumed Level 1 — confirm the level for the certificate; §7 and §8 dispositions depend on the software embodiment at that level.
 - Module version identifier is unresolved: qudo-pqc-lib has no release tag (pinned to branch head 73e5499b) and its 1.0.0 version string is not uniquely traceable. Cut a named release and re-pin to a tag, then fix the QudoSSL module version that binds to both subtree SHAs, before the cert branch is frozen.
 - Delivery mechanism and vendor name/contact are undetermined (§11.2).
 - Exact tested-platform build strings / toolchain versions per OE (Linux x86-64, Linux aarch64, macOS arm64, Windows x64) are not recorded (§11.4).
 - Windows x64 reproducible build is not yet verified; /Brepro alone is insufficient (MSVC ignores SOURCE_DATE_EPOCH; PDB paths, debug directory, lib.exe member ordering/timestamps outstanding). A PowerShell verify-reproducible equivalent and a green two-build comparison are prerequisites before Windows submission.
 - The FIPS module fips.so has not yet joined the byte-for-byte reproducibility comparison (Story 6.7); only libqudo-pqc.a, libcrypto and libssl were demonstrated in Sprint 1.
-- QudoSSL Crypto Officer Guide is a required Area 11 deliverable but does not yet exist; its story/deliverable reference must be re-confirmed (design-errata records Stories 4.2–4.4 as removed under delegation). The vendor's qudo-pqc-lib CRYPTO_OFFICER_GUIDANCE.md predates delegation and does not govern this module.
+- QudoSSL Crypto Officer Guide is a required Area 11 deliverable but does not yet exist; its story/deliverable reference must be re-confirmed. The vendor's qudo-pqc-lib CRYPTO_OFFICER_GUIDANCE.md predates delegation and does not govern this module.
 - End-of-life / SSP sanitization procedures are not documented (§11.6).
 - No measured constant-time evidence exists for delegated ML-KEM or ML-DSA on any OE; §12.2 is source review only and must be presented as a design review under IG D.E, not as measurement.
 - Deferred CT-poisoning prerequisite (UD-4): OpenSSL ml_kem.c:2518 poisoning under-covers ML-KEM-768/1024 and never reaches the rejection secret z. It affects no shipped binary (OPENSSL_CONSTANT_TIME_VALIDATION undefined) but must be widened to the rank-aware expression before any ML-KEM-768/1024 constant-time validation run.
 - macOS arm64 will have no direct constant-time measurement (valgrind lacks Apple Silicon support); if it is a claimed OE, the lab must be told its CT argument rests on source review + inherited HOL-Light + by-proxy Linux/aarch64 measurement.
 - A written ML-DSA rejection-sampling side-channel position is required before lab engagement (§12.5); it is an argument, not a measurement.
 - Inherited CBMC/HOL-Light constant-time proofs for mlkem-native/mldsa-native must be formally accepted as inherited upstream evidence and recorded as such; QudoSSL has not run them or obtained their artifacts.
-- Install-path collision check (fips.so identical to stock OpenSSL FIPS provider) must be carried into operator guidance (ADR-0006).
+- Install-path collision check (fips.so identical to stock OpenSSL FIPS provider) must be carried into operator guidance.
 - CMVP/CAVP certificate numbers are unknown (References).
 - [TO BE CONFIRMED] Module version identifier — qudo-pqc-lib has no release tag; subtree pin is main @ 73e5499b, a moving branch head that cannot support a reproducible certification SHA (docs/subtree-pins.md:31-36).
 - [TO BE CONFIRMED] Overall FIPS 140-3 Security Level (assumed Level 1).
 - [TO BE CONFIRMED] Entropy source characterization (SP 800-90B min-entropy, conditioning) and the exact approved SP 800-90A DRBG mechanism and claimed instantiated strength — these are OpenSSL's entropy/DRBG path, covered by OpenSSL's own FIPS submission evidence.
-- [TO BE CONFIRMED / not yet inventoried] SLH-DSA (FIPS 205) private-key and seed CSPs (inventory row C3). SLH-DSA is OpenSSL's own implementation (ADR-0010) but its private keys are module CSPs; openssl/crypto/slh_dsa/ was not audited for zeroization in this pass and must be before the CSP register is complete.
+- [TO BE CONFIRMED / not yet inventoried] SLH-DSA (FIPS 205) private-key and seed CSPs (inventory row C3). SLH-DSA is OpenSSL's own implementation but its private keys are module CSPs; openssl/crypto/slh_dsa/ was not audited for zeroization in this pass and must be before the CSP register is complete.
 - Multi-OE gap: all object-level (objdump) zeroization measurements were taken only on macOS arm64 (Apple clang 17, -O3, no LTO). They must be regenerated from a clean build of the exact certified commit on Linux x86-64, Linux aarch64 and Windows x64, and the §9.7.4 dead-store (memset non-elision) argument re-measured per toolchain.
 - Secure-heap asymmetry: the ML-KEM export path uses OPENSSL_secure_clear_free while the ML-DSA path uses OPENSSL_clear_free; upstream master uses secure-heap frees for both. Decide whether to match master before the next sync and whether any target OE requires a secure-heap/mlock claim for PQC private keys.
 - vector_zero()/poly_zero() still use plain memset rather than OPENSSL_cleanse (argued sound here by call structure, §9.7.4, but not a source-level guarantee).
@@ -137,8 +137,8 @@ FIPS security service is supplied by OpenSSL. §2 defines this precisely.
 
 | Field | Value |
 |---|---|
-| Module name | **QudoSSL FIPS Provider** — the string the module itself reports via `OSSL_PROV_PARAM_NAME`; confirm it matches the certificate exactly (ADR-0013) |
-| Module version | **3.5.7+qudo-1.0.0** — reported as the provider's `build info`. `3.5.7` is the OpenSSL baseline (also the provider's `version` field); `qudo-1.0.0` is the QudoSSL release. `qudo-pqc-lib` is pinned to tag `v1.0.0`, so the version is now reproducible (ADR-0013, `docs/subtree-pins.md`) |
+| Module name | **QudoSSL FIPS Provider** — the string the module itself reports via `OSSL_PROV_PARAM_NAME`; confirm it matches the certificate exactly |
+| Module version | **3.5.7+qudo-1.0.0** — reported as the provider's `build info`. `3.5.7` is the OpenSSL baseline (also the provider's `version` field); `qudo-1.0.0` is the QudoSSL release. `qudo-pqc-lib` is pinned to tag `v1.0.0`, so the version is now reproducible (`docs/subtree-pins.md`) |
 
 > **Only the FIPS provider is the validated module.** Every provider QudoSSL
 > ships is now QudoSSL-branded, so `qudossl list -providers` shows several
@@ -155,11 +155,10 @@ FIPS security service is supplied by OpenSSL. §2 defines this precisely.
 >
 > Approved operation requires the `fips` and `base` providers with
 > `default_properties = fips=yes`, and the default provider **not** activated.
-> See ADR-0013.
 | Module type | Software |
 | Module embodiment | **[TO BE CONFIRMED: multi-chip standalone assumed]** (software module executing on a general-purpose computer) |
 | Cryptographic base | OpenSSL 3.5.7 FIPS provider (`fips.so`) |
-| FIPS module file | `fips.so` (Linux) · `fips.dylib` (macOS) · `fips.dll` (Windows) — **not** renamed (ADR-0006) |
+| FIPS module file | `fips.so` (Linux) · `fips.dylib` (macOS) · `fips.dll` (Windows) — **not** renamed |
 | Vendor / point of contact | **[TO BE CONFIRMED]** |
 
 Measured version string of the built product (macOS arm64 artifact in the tree):
@@ -219,9 +218,9 @@ indicator entirely within itself.
 Post-quantum key-establishment (ML-KEM, FIPS 203) and post-quantum signatures
 (ML-DSA, FIPS 204) are implemented by **delegating the lattice/sampling math** from
 OpenSSL's crypto-core entry points (`crypto/ml_kem`, `crypto/ml_dsa`) into a
-statically linked archive built from `qudo-pqc-lib` (ADR-0005, "crypto-layer
+statically linked archive built from `qudo-pqc-lib` ("crypto-layer
 delegation"). That archive is compiled in a **math-only** configuration
-(`-DQUDO_PQC_MATH_ONLY=ON`, ADR-0009): its own FIPS scaffolding (POST, PCT, integrity
+(`-DQUDO_PQC_MATH_ONLY=ON`): its own FIPS scaffolding (POST, PCT, integrity
 HMAC, CTR-DRBG, AES, HMAC, audit, indicator) is not compiled at all, so it can supply
 nothing but algorithm math.
 
@@ -232,15 +231,15 @@ approved-mode state machine, and the approval indicator. `qudo-pqc-lib` supplies
 **PQC algorithm math only**.
 
 - **SLH-DSA (FIPS 205) is *not* delegated.** It is served by OpenSSL's own
-  implementation; `crypto/slh_dsa/` is byte-identical to upstream `openssl-3.5.7`
-  (ADR-0010). Zero qudo SLH-DSA symbols are present in the module (measured below).
+  implementation; `crypto/slh_dsa/` is byte-identical to upstream `openssl-3.5.7`.
+  Zero qudo SLH-DSA symbols are present in the module (measured below).
 - **All classical algorithms** (AES, SHA-1/2/3, HMAC, RSA, ECDSA, EdDSA, ECDH, DRBG,
   KDFs, …) are OpenSSL's.
 
 ### 2.2 FIPS module filename per operational environment
 
 The FIPS module is **not** renamed to `qudo-fips.so`; it builds and ships with the
-stock upstream filename (ADR-0006, superseding design §1.2/§1.5/§5/§7.1/§15.1). Cert
+stock upstream filename (superseding design §1.2/§1.5/§5/§7.1/§15.1). Cert
 identity is therefore carried by this Security Policy, the module version, and the
 repository/subtree SHAs — not by the filename.
 
@@ -253,7 +252,7 @@ repository/subtree SHAs — not by the filename.
 
 Installed path is `<libdir>/ossl-modules/fips.<ext>`. Because the filename is now
 identical to a stock OpenSSL FIPS provider, install-path collision with a host system
-OpenSSL must be checked at integration (ADR-0006).
+OpenSSL must be checked at integration.
 
 ### 2.3 Definition of the cryptographic boundary
 
@@ -358,7 +357,7 @@ Note the randomness flow: the delegation layer calls only the **seeded / derando
 qudo entry points and supplies randomness drawn from OpenSSL's approved DRBG as a
 call argument (e.g. `QUDO_KEM_keypair_from_seed`, `QUDO_KEM_encaps_derand`,
 `QUDO_MLDSA_sign_internal`). Randomness never originates inside the delegated math
-(ADR-0009, "The rule this creates"; `ci/check-seeded-entrypoints.sh`).
+("The rule this creates"; `ci/check-seeded-entrypoints.sh`).
 
 ### 2.5 Modes of operation
 
@@ -397,9 +396,9 @@ non-approved services belongs to the services/algorithms sections of this policy
 
 | PQC family | Standard | Implementation inside the boundary |
 |---|---|---|
-| ML-KEM | FIPS 203 | **Delegated** to `qudo-pqc-lib` math (ADR-0005) |
-| ML-DSA | FIPS 204 | **Delegated** to `qudo-pqc-lib` math (ADR-0005) |
-| SLH-DSA | FIPS 205 | **OpenSSL's own** — not delegated (ADR-0010); `crypto/slh_dsa/` byte-identical to upstream |
+| ML-KEM | FIPS 203 | **Delegated** to `qudo-pqc-lib` math |
+| ML-DSA | FIPS 204 | **Delegated** to `qudo-pqc-lib` math |
+| SLH-DSA | FIPS 205 | **OpenSSL's own** — not delegated; `crypto/slh_dsa/` byte-identical to upstream |
 | All classical algorithms | — | **OpenSSL's own** |
 
 Only four source files diverge from upstream `openssl-3.5.7` to effect the
@@ -443,7 +442,7 @@ cryptographic module and maps each to the software component that realises it.
 
 The module is a single certified artifact — `fips.so` (Linux), `fips.dylib`
 (macOS), `fips.dll` (Windows), built from OpenSSL 3.5.7's FIPS provider
-(ADR-0006; the module is **not** renamed to `qudo-fips.so`). All algorithms are
+(the module is **not** renamed to `qudo-fips.so`). All algorithms are
 served from that one binary. The FIPS boundary supplies every FIPS service
 itself — POST, CASTs, PCTs, the integrity HMAC, the approved DRBG, the approval
 (service) indicator and the state machine — from OpenSSL code. The vendored
@@ -556,7 +555,7 @@ This is the mapping a laboratory needs to associate each operation with the
 component that computes it. Two facts govern the whole table:
 
 1. **Only ML-KEM (FIPS 203) and ML-DSA (FIPS 204) algorithm math is delegated to
-   `qudo-pqc-lib`** (ADR-0005). Delegation is at the crypto-core layer, gated by
+ `qudo-pqc-lib`**. Delegation is at the crypto-core layer, gated by
    `#ifdef QUDO_PQC_DELEGATE` in `crypto/ml_kem/ml_kem.c`,
    `crypto/ml_dsa/ml_dsa_key.c` and `crypto/ml_dsa/ml_dsa_sign.c` (guard present
    in all three; measured). OpenSSL still owns the provider, EVP, key structs,
@@ -566,23 +565,23 @@ component that computes it. Two facts govern the whole table:
 
 > **Correction to the frozen design.** Design §15.2 / Decision Log D2 state that
 > SLH-DSA is sourced from `qudo-pqc-lib`. **That is wrong and is corrected here**
-> per ADR-0010 (and `docs/design-errata.md` §1, row §15.2). `crypto/slh_dsa/` is
+>. `crypto/slh_dsa/` is
 > byte-identical to upstream `openssl-3.5.7` (`grep -rc QUDO crypto/slh_dsa/` →
-> 0; ADR-0010 evidence #3), and the module exports **zero** `QUDO_SLH*` symbols
+> 0; evidence #3), and the module exports **zero** `QUDO_SLH*` symbols
 > (measured). qudo's SLH-DSA was implemented, measured 1.6× slower, and reverted
-> specifically to keep a second SHA-2/Keccak out of the boundary (ADR-0010).
+> specifically to keep a second SHA-2/Keccak out of the boundary.
 
 | Operation | Math / core implementation | FIPS services (POST/CAST/PCT/integrity/DRBG/indicator/state) | Provider, EVP, keymgmt, encoders | Evidence |
 |---|---|---|---|---|
 | **ML-KEM-512/768/1024** keygen, encaps, decaps | **qudo-pqc-lib** — `QUDO_KEM_keypair_from_seed` / `QUDO_KEM_encaps_derand` / `QUDO_KEM_decaps` (linked in `fips.so`) | **OpenSSL** | **OpenSSL** (untouched `providers/implementations/kem`, keymgmt) | `crypto/ml_kem/ml_kem.c` delegation guards; `fipsprov.c:539-541,602-607`; 123 `QUDO_` symbols in `fips.dylib` |
 | **ML-DSA-44/65/87** keygen, sign, verify | **qudo-pqc-lib** — `QUDO_MLDSA_keypair_internal` / `QUDO_MLDSA_sign_internal` / `QUDO_MLDSA_verify_internal` | **OpenSSL** | **OpenSSL** (FIPS 204 §5.4 message encoding done by OpenSSL's `msg_encode()` **before** delegating) | `crypto/ml_dsa/ml_dsa_{key,sign}.c` delegation guards; `fipsprov.c:492-494,584-589`; disclosure §5 |
-| **SLH-DSA** (all 12 param sets) keygen/sign/verify | **OpenSSL only** (`crypto/slh_dsa/`, byte-identical to upstream) | **OpenSSL** | **OpenSSL** | ADR-0010; `fipsprov.c:503-525,622-644`; 0 `QUDO_SLH*` in module |
+| **SLH-DSA** (all 12 param sets) keygen/sign/verify | **OpenSSL only** (`crypto/slh_dsa/`, byte-identical to upstream) | **OpenSSL** | **OpenSSL** | `fipsprov.c:503-525,622-644`; 0 `QUDO_SLH*` in module |
 | **ML-KEM hybrid combiners** (X25519MLKEM768, X448MLKEM1024, SecP256r1MLKEM768, SecP384r1MLKEM1024) | ML-KEM half → **qudo-pqc-lib**; X25519/X448/ECDH half → **OpenSSL** | **OpenSSL** | **OpenSSL** | `fipsprov.c:609-617` |
 | **All classical algorithms** (AES, Triple-DES, RSA, ECDSA, EdDSA, DSA, DH, ECDH) | **OpenSSL only** | **OpenSSL** | **OpenSSL** | `fipsprov.c` cipher/signature/keyexch/keymgmt tables; no `QUDO_` symbol on these paths |
 | **All hashing** (SHA-1, SHA-2, SHA-3, SHAKE, KECCAK-KMAC) — every *fetchable* digest service | **OpenSSL only** (`crypto/sha/`) — the **single claimed** SHA-2/SHA-3 implementation | **OpenSSL** | **OpenSSL** | 15 digests provided, all `@ fips`, all OpenSSL names (measured); disclosure §1.1, §5 |
 | **All MAC** (HMAC, CMAC, GMAC, KMAC) | **OpenSSL only** | **OpenSSL** | **OpenSSL** | measured MAC list; disclosure §5 |
 | **All KDF** (HKDF, KBKDF, SSKDF, X942/X963, PBKDF2, SSHKDF, TLS1-PRF, TLS1.3-KDF) | **OpenSSL only** | **OpenSSL** | **OpenSSL** | measured KDF list |
-| **DRBG** (CTR/Hash/HMAC), integrity HMAC, approval indicator, self-test orchestration, state machine | **OpenSSL only** | **OpenSSL** — the *only* DRBG/integrity/indicator/state authority | **OpenSSL** | 0 qudo FIPS-infra symbols (measured); disclosure §1.4, §3.2, §3.3; ADR-0009 |
+| **DRBG** (CTR/Hash/HMAC), integrity HMAC, approval indicator, self-test orchestration, state machine | **OpenSSL only** | **OpenSSL** — the *only* DRBG/integrity/indicator/state authority | **OpenSSL** | 0 qudo FIPS-infra symbols (measured); disclosure §1.4, §3.2, §3.3; |
 
 Correctness of the delegated (qudo) math is established transitively: 525 NIST
 ACVP vectors (FIPS 203 keyGen/encapDecap and FIPS 204 keyGen/sigGen/sigVer,
@@ -677,7 +676,7 @@ QudoSSL is a **software cryptographic module** based on the OpenSSL 3.5.7 FIPS
 provider. The module is delivered as a single dynamically-loadable object file:
 `fips.so` on Linux, `fips.dylib` on macOS, and `fips.dll` on Windows. The file
 name is **not** rebranded and is byte-for-byte the upstream FIPS-provider name
-(ADR-0006; the module's exported provider entry point `_OSSL_provider_init` is
+(the module's exported provider entry point `_OSSL_provider_init` is
 present in `openssl/providers/fips.dylib`, verified with
 `nm -gU openssl/providers/fips.dylib`).
 
@@ -731,14 +730,14 @@ buffers and `OSSL_PARAM` arrays.
 
 > **Delegated PQC math has no independent interface.** ML-KEM (FIPS 203) and
 > ML-DSA (FIPS 204) arithmetic is delegated to the statically-linked
-> `qudo-pqc-lib` archive at the crypto-core layer (ADR-0005). That code is
+> `qudo-pqc-lib` archive at the crypto-core layer. That code is
 > reachable **only** from inside OpenSSL's `crypto/ml_kem` and `crypto/ml_dsa`
 > entry points; it exposes **none** of the four logical interfaces to the
 > operator and registers **no** service. Consistent with the boundary rule,
 > `fips.dylib` links 123 qudo *math* symbols and **zero** qudo FIPS-
 > infrastructure symbols (`nm -a openssl/providers/fips.dylib`;
 > `docs/boundary-duplicate-hash-disclosure.md` §1.4, §0). SLH-DSA (FIPS 205) is
-> OpenSSL's own implementation and is not delegated (ADR-0010).
+> OpenSSL's own implementation and is not delegated.
 
 ## 3.3 The four logical interfaces
 
@@ -867,7 +866,7 @@ indicator**, and it is a **status-output** mechanism:
 **This is OpenSSL's indicator, and it is the module's only indicator.** Under
 the math-only delegation build there is no `qudo_fips_ind_t` and no qudo
 indicator adapter — `openssl/providers/fips/fipsindicator.c` is the sole
-approval authority (`docs/design-errata.md` §4, superseding design §12.1;
+approval authority (superseding design §12.1;
 boundary rule confirmed by zero qudo FIPS-infrastructure symbols in the module,
 `docs/boundary-duplicate-hash-disclosure.md` §1.4).
 
@@ -910,10 +909,10 @@ Sensitive Security Parameters (SSPs) it touches, and the type of access it makes
 to each. It is written to ISO/IEC 19790:2012 §7.4 and FIPS 140-3.
 
 The module is the OpenSSL 3.5.7 FIPS provider (`fips.so` / `fips.dylib` /
-`fips.dll`, not renamed — ADR-0006). ML-KEM (FIPS 203) and ML-DSA (FIPS 204)
+`fips.dll`, not renamed —). ML-KEM (FIPS 203) and ML-DSA (FIPS 204)
 algorithm math is delegated at the crypto-core layer to the vendored
-`qudo-pqc-lib` archive (ADR-0005); SLH-DSA (FIPS 205) and every classical
-algorithm are OpenSSL's own implementation (ADR-0010). Crucially for this
+`qudo-pqc-lib` archive; SLH-DSA (FIPS 205) and every classical
+algorithm are OpenSSL's own implementation. Crucially for this
 section, **every FIPS *service* — the self-tests, the pairwise consistency
 tests, the approved DRBG, the integrity check, the approval indicator and the
 finite-state model — is supplied by OpenSSL; `qudo-pqc-lib` supplies algorithm
@@ -985,13 +984,13 @@ service creates a new SSP:
 **Implementation source** — which code performs the algorithm math:
 
 - **Delegated** — ML-KEM / ML-DSA lattice math is executed by `qudo-pqc-lib`
-  (`libqudo-pqc.a`, math-only build, ADR-0009), reached through the
+ (`libqudo-pqc.a`, math-only build), reached through the
   `QUDO_KEM_*` / `QUDO_MLDSA_*` seeded entry points from OpenSSL's crypto-core
   shims. Note that even for the delegated families, several sub-operations remain
   OpenSSL's: the ML-KEM public-key hash `H(ek)` and A-matrix pre-expansion, all
   key encodings/codecs, the FIPS 204 §5.4 message encoding, and the pairwise
   consistency test (`docs/boundary-duplicate-hash-disclosure.md` §5;
-  `docs/design-errata.md` §1).
+).
 - **OpenSSL** — the algorithm is entirely OpenSSL's own implementation.
 
 **SSP abbreviations used in the table** (CSP = Critical Security Parameter;
@@ -1034,7 +1033,7 @@ OpenSSL's submission).
 |---|---|---|---|---|---|
 | 1 | Module initialisation & Power-On Self-Test (POST): integrity check + algorithm KATs, run automatically at load/init | CO / User (automatic) | HMAC-SHA-256 integrity (over `fips.so`); KATs for AES, SHA-2/3, DRBG, RSA, ECDSA, and the ML-KEM/ML-DSA/SLH-DSA CASTs | OpenSSL (drives the delegated math through `ossl_ml_kem_*` / `ossl_ml_dsa_*`) | IG-KEY — R,E; all algorithm KAT keys — E |
 | 2 | Perform self-tests on demand (reload / `OSSL_PROVIDER_self_test`) | CO / User | Same as service 1 | OpenSSL | IG-KEY — R,E; KAT keys — E |
-| 3 | Show status / query FIPS approval indicator | CO / User | None | OpenSSL (`fipsindicator.c`, sole indicator authority — `docs/design-errata.md` §4) | None |
+| 3 | Show status / query FIPS approval indicator | CO / User | None | OpenSSL (`fipsindicator.c`, sole indicator authority —) | None |
 | 4 | Show module name / version | CO / User | None | OpenSSL | None |
 | 5 | **ML-KEM key generation** (ML-KEM-512/768/1024); includes conditional keygen PCT | CO / User | ML-KEM.KeyGen (FIPS 203) | **Delegated** (`QUDO_KEM_keypair_from_seed`); PCT and codecs OpenSSL (`ossl_ml_kem_key_pairwise` path) | DRBG-STATE — E; MLKEM-DK — G,W,Z (stack seed cleansed); MLKEM-EK — G,W |
 | 6 | **ML-KEM encapsulation** | CO / User | ML-KEM.Encaps (FIPS 203) | **Delegated** (`QUDO_KEM_encaps_derand`) | MLKEM-EK — R,E; DRBG-STATE — E; MLKEM-ENT — G,E,Z; MLKEM-SS — G,W |
@@ -1042,7 +1041,7 @@ OpenSSL's submission).
 | 8 | **ML-DSA key generation** (ML-DSA-44/65/87); includes conditional keygen PCT | CO / User | ML-DSA.KeyGen (FIPS 204) | **Delegated** (`QUDO_MLDSA_keypair_internal`); PCT OpenSSL (`ossl_ml_dsa_key_pairwise_check`) | DRBG-STATE — E; MLDSA-SK — G,W,Z (stack seed cleansed); MLDSA-PK — G,W |
 | 9 | **ML-DSA signature generation** (pure and hedged) | CO / User | ML-DSA.Sign (FIPS 204); FIPS 204 §5.4 message encoding by OpenSSL | **Delegated** (`QUDO_MLDSA_sign_internal`) | MLDSA-SK — R,E; DRBG-STATE — E (hedged); MLDSA-RND — G,E,Z |
 | 10 | **ML-DSA signature verification** | CO / User | ML-DSA.Verify (FIPS 204) | **Delegated** (`QUDO_MLDSA_verify_internal`) | MLDSA-PK — R,E |
-| 11 | **SLH-DSA key generation** (all 12 parameter sets) | CO / User | SLH-DSA.KeyGen (FIPS 205) | **OpenSSL** (`crypto/slh_dsa/`, byte-identical to upstream — ADR-0010) | DRBG-STATE — E; SLHDSA-SK — G,W,Z; SLHDSA-PK — G,W |
+| 11 | **SLH-DSA key generation** (all 12 parameter sets) | CO / User | SLH-DSA.KeyGen (FIPS 205) | **OpenSSL** (`crypto/slh_dsa/`, byte-identical to upstream —) | DRBG-STATE — E; SLHDSA-SK — G,W,Z; SLHDSA-PK — G,W |
 | 12 | **SLH-DSA signature generation** | CO / User | SLH-DSA.Sign (FIPS 205) | **OpenSSL** | SLHDSA-SK — R,E; DRBG-STATE — E (hedged) |
 | 13 | **SLH-DSA signature verification** | CO / User | SLH-DSA.Verify (FIPS 205) | **OpenSSL** | SLHDSA-PK — R,E |
 | 14 | Classical asymmetric key generation (RSA, ECDSA/EC, DSA, DH/ECDH) | CO / User | RSA (FIPS 186-5), ECDSA (FIPS 186-5), safe-prime DH (SP 800-56Arev3), FFC/ECC KAS; includes PCTs | OpenSSL | DRBG-STATE — E; ASYM-SK — G,W,Z; ASYM-PK — G,W |
@@ -1052,8 +1051,8 @@ OpenSSL's submission).
 | 18 | Message digest (SHA-1, SHA-2 family, SHA-3 family, SHAKE-128/256, KECCAK-KMAC) | CO / User | SHA-2 (FIPS 180-4), SHA-3/SHAKE (FIPS 202) | OpenSSL (sole registered digest impl — see note below) | None |
 | 19 | Message authentication (HMAC, CMAC, GMAC, KMAC-128/256) | CO / User | HMAC (FIPS 198-1), CMAC/GMAC (SP 800-38B/D), KMAC (SP 800-185) | OpenSSL | MAC-K — W,E,Z |
 | 20 | Key derivation (HKDF, TLS1.3-KDF, TLS1-PRF, SSKDF, SSHKDF, X9.63/X9.42 KDF, PBKDF2, KBKDF) | CO / User | SP 800-56C, SP 800-108, SP 800-132, RFC 5869, etc. | OpenSSL | KDF-KM — W,E,G,Z |
-| 21 | Random bit generation (CTR-DRBG, Hash-DRBG, HMAC-DRBG) | CO / User | SP 800-90A DRBG; SP 800-90B entropy source | OpenSSL (sole approved DRBG — ADR-0009) | DRBG-EI — W,E,Z; DRBG-STATE — G,E,Z |
-| 22 | Key import / export / storage (keymgmt, PEM/DER encoders & decoders) | CO / User | Encodes/decodes keys for the algorithms above | OpenSSL (`providers/implementations/*`, untouched — ADR-0005) | ASYM-SK, MLKEM-DK, MLDSA-SK, SLHDSA-SK — R,W,Z; corresponding PSPs — R,W |
+| 21 | Random bit generation (CTR-DRBG, Hash-DRBG, HMAC-DRBG) | CO / User | SP 800-90A DRBG; SP 800-90B entropy source | OpenSSL (sole approved DRBG —) | DRBG-EI — W,E,Z; DRBG-STATE — G,E,Z |
+| 22 | Key import / export / storage (keymgmt, PEM/DER encoders & decoders) | CO / User | Encodes/decodes keys for the algorithms above | OpenSSL (`providers/implementations/*`, untouched —) | ASYM-SK, MLKEM-DK, MLDSA-SK, SLHDSA-SK — R,W,Z; corresponding PSPs — R,W |
 | 23 | Zeroization | CO / User | None | OpenSSL (`OPENSSL_cleanse` / `OPENSSL_clear_free`) | All CSPs — Z |
 
 **Notes on the delegated vs. native split (services 5–13).**
@@ -1064,7 +1063,7 @@ OpenSSL's submission).
   drawn from OpenSSL's approved DRBG as an argument
   (`QUDO_KEM_keypair_from_seed`, `QUDO_KEM_encaps_derand`,
   `QUDO_MLDSA_keypair_internal`, `QUDO_MLDSA_sign_internal`), which is what makes
-  a host-DRBG shim unnecessary (ADR-0009, "The rule this creates";
+ a host-DRBG shim unnecessary ("The rule this creates";
   `docs/side-channel-analysis.md` §5). A CI gate,
   `ci/check-seeded-entrypoints.sh`, asserts the seeded forms are the ones called.
 - The conditional **pairwise consistency tests** for services 5 and 8 are
@@ -1078,7 +1077,7 @@ OpenSSL's submission).
 - Services 11–13 (**SLH-DSA**) and 14–22 (**classical**) are entirely OpenSSL's.
   Measured: `fips.dylib` contains **zero** `QUDO_SLH*` symbols and 51
   `ossl_slh_dsa` symbols; `crypto/slh_dsa/` is byte-identical to upstream
-  `openssl-3.5.7` (ADR-0010; `docs/boundary-duplicate-hash-disclosure.md` §1.4).
+ `openssl-3.5.7` (`docs/boundary-duplicate-hash-disclosure.md` §1.4).
 - **Duplicate-hash disclosure (service 18).** Although OpenSSL's `crypto/sha/`
   is the *only registered and claimed* SHA-2/SHA-3 implementation and serves
   every fetchable digest service, `qudo-pqc-lib` links ~121 additional
@@ -1104,7 +1103,7 @@ places the operation outside the approved mode; the module's approval indicator
 
 The module provides **no** non-security-relevant bypass service and **no**
 maintenance service. `oqs-provider` and `pkcs11-provider` are retained in the
-repository build (ADR-0007) but are **not** part of the validated module boundary
+repository build but are **not** part of the validated module boundary
 and expose no service of this module.
 
 ### 4.6 Open items for this section
@@ -1146,9 +1145,9 @@ The module is delivered in software form as a single certified object file:
 | macOS arm64 | `providers/fips.dylib` | `libcrypto.3.dylib`, `libssl.3.dylib` |
 | Windows x64 | `providers\fips.dll` | `libcrypto-3-x64.dll`, `libssl-3-x64.dll` |
 
-The module file is **not renamed** from the upstream OpenSSL name; it ships as `fips.so` / `fips.dylib` / `fips.dll`, identical to a stock OpenSSL FIPS provider (ADR-0006). Cert identity is therefore carried by this Security Policy, the module version and the source SHA (§6.4), not by the filename. Artifact names verified in `.github/workflows/ci.yml:49-51` (Linux), `:137-139` (macOS), `:247-249` (Windows).
+The module file is **not renamed** from the upstream OpenSSL name; it ships as `fips.so` / `fips.dylib` / `fips.dll`, identical to a stock OpenSSL FIPS provider. Cert identity is therefore carried by this Security Policy, the module version and the source SHA (§6.4), not by the filename. Artifact names verified in `.github/workflows/ci.yml:49-51` (Linux), `:137-139` (macOS), `:247-249` (Windows).
 
-The ML-KEM (FIPS 203) and ML-DSA (FIPS 204) algorithm **math** is statically linked into this file from `qudo-pqc-lib` (`libqudo-pqc.a`) under crypto-layer delegation (ADR-0005). SLH-DSA (FIPS 205) and all classical algorithms are OpenSSL's own. Every FIPS *service* — the integrity test, the self-tests, the approved DRBG, the state machine and the approval indicator — is supplied by OpenSSL; `qudo-pqc-lib` supplies algorithm math only. This is verified by measurement: `fips.dylib` links **123** qudo math symbols (all `T`, defined in the module) and **zero** qudo FIPS-infrastructure symbols (`nm -a`/`nm -g`, `docs/boundary-duplicate-hash-disclosure.md` §1.4, §7 item 4; ADR-0009 CORRECTION).
+The ML-KEM (FIPS 203) and ML-DSA (FIPS 204) algorithm **math** is statically linked into this file from `qudo-pqc-lib` (`libqudo-pqc.a`) under crypto-layer delegation. SLH-DSA (FIPS 205) and all classical algorithms are OpenSSL's own. Every FIPS *service* — the integrity test, the self-tests, the approved DRBG, the state machine and the approval indicator — is supplied by OpenSSL; `qudo-pqc-lib` supplies algorithm math only. This is verified by measurement: `fips.dylib` links **123** qudo math symbols (all `T`, defined in the module) and **zero** qudo FIPS-infrastructure symbols (`nm -a`/`nm -g`, `docs/boundary-duplicate-hash-disclosure.md` §1.4, §7 item 4; CORRECTION).
 
 ## 5.2 Integrity technique — HMAC-SHA-256 at load
 
@@ -1175,7 +1174,7 @@ At self-test time this value reaches the check as `st->module_checksum_data` and
 2. The module file is opened and streamed through HMAC-SHA-256 in 4 KB blocks — `verify_integrity()` (`self_test.c:247-301`, buffer size `INTEGRITY_BUF_SIZE = 4096` at `:47`), and the result is compared to the stored `module-mac` (`:289-291`). The gating call is at `self_test.c:377-384`, whose in-source comment reads *"Always check the integrity of the fips module."*
 3. Only if integrity passes does the module run the algorithm KATs (`SELF_TEST_kats`, `self_test.c:386`) and then transition to the running state (`set_fips_state(FIPS_STATE_RUNNING)`, `:412`).
 
-**Coverage of the delegated math.** Because `qudo-pqc-lib`'s ML-KEM/ML-DSA object code is linked into the module file, it is inside the integrity-protected image and is covered by this single HMAC (`docs/boundary-duplicate-hash-disclosure.md` §3.3). There is exactly one integrity mechanism — OpenSSL's; `qudo-pqc-lib`'s own embedded integrity HMAC is not compiled in the `QUDO_PQC_MATH_ONLY` build and is measured absent from the module (§5.1; ADR-0009).
+**Coverage of the delegated math.** Because `qudo-pqc-lib`'s ML-KEM/ML-DSA object code is linked into the module file, it is inside the integrity-protected image and is covered by this single HMAC (`docs/boundary-duplicate-hash-disclosure.md` §3.3). There is exactly one integrity mechanism — OpenSSL's; `qudo-pqc-lib`'s own embedded integrity HMAC is not compiled in the `QUDO_PQC_MATH_ONLY` build and is measured absent from the module (§5.1;).
 
 ## 5.3 Handling of an integrity failure
 
@@ -1185,7 +1184,7 @@ If the recomputed HMAC-SHA-256 does not match the stored `module-mac` (or the mo
 - `SELF_TEST_post()` returns failure, driving `ossl_set_error_state(OSSL_SELF_TEST_TYPE_NONE)` (`self_test.c:414`), which sets the module state to `FIPS_STATE_ERROR` and raises `PROV_R_FIPS_MODULE_ENTERING_ERROR_STATE` (`self_test.c:430-449`).
 - In the error state the module provides **no cryptographic services**: `ossl_prov_is_running()` returns false for `FIPS_STATE_ERROR` (`self_test.c:451-459`), so every approved service and every keyed operation is refused. The module never reaches `FIPS_STATE_RUNNING`.
 
-There is a single state machine, OpenSSL's, which is the sole authority for approved-mode / error-mode transitions (ADR-0009; `docs/design-errata.md` §2). The same integrity check can be re-run on demand via `SELF_TEST_post(..., on_demand_test=1)` (`self_test.c:316`, `:334-352`).
+There is a single state machine, OpenSSL's, which is the sole authority for approved-mode / error-mode transitions. The same integrity check can be re-run on demand via `SELF_TEST_post(.., on_demand_test=1)` (`self_test.c:316`, `:334-352`).
 
 ```mermaid
 flowchart TD
@@ -1221,7 +1220,7 @@ The tested binary is bound to a specific source state so that a laboratory or au
 
 The determinism CI job (`.github/workflows/ci.yml:146-164`, `reproducible-build/verify-reproducible.sh`) runs a two-build byte comparison, but only across the matrix `ubuntu-24.04`, `ubuntu-24.04-arm`, `macos-14` — **Windows is deliberately not in that matrix**, consistent with the "Not verified" status above.
 
-> **Note (macOS build-flag correction).** The frozen design (§12.3, §22.1) prescribed `-Wl,-no_uuid` on macOS. That flag strips `LC_UUID` and makes the macOS linker refuse to link against `libcrypto.dylib`, breaking the build; determinism is instead achieved with `ZERO_AR_DATE=1` plus a content-derived `LC_UUID` (`docs/reproducibility.md`; `docs/design-errata.md` §1). The Security Policy describes the corrected process, not the superseded design text.
+> **Note (macOS build-flag correction).** The frozen design (§12.3, §22.1) prescribed `-Wl,-no_uuid` on macOS. That flag strips `LC_UUID` and makes the macOS linker refuse to link against `libcrypto.dylib`, breaking the build; determinism is instead achieved with `ZERO_AR_DATE=1` plus a content-derived `LC_UUID` (`docs/reproducibility.md`). The Security Policy describes the corrected process, not the superseded design text.
 
 ## 5.5 Known gaps for §5 (disclosed)
 
@@ -1243,7 +1242,7 @@ Each time the module is loaded into a calling application's process, it performs
 
 ## 6.2 Tested operational environments
 
-Four operational environments are designated for testing (`CLAUDE.md`; `docs/design-errata.md` §1, confirmed 2026-07-22; `docs/subtree-pins.md`):
+Four operational environments are designated for testing (`CLAUDE.md`; `docs/subtree-pins.md`):
 
 | # | OE (processor / architecture) | Operating system build string | Build toolchain | Module file |
 |---|---|---|---|---|
@@ -1254,7 +1253,7 @@ Four operational environments are designated for testing (`CLAUDE.md`; `docs/des
 
 The CI *runner image* names above are provided only as build-context hints (`.github/workflows/ci.yml:30-33, 123, 152, 226`); they are **not** the certified tested-platform build strings. The exact OS version/build, kernel, distribution and compiler version strings for each OE must be captured from the actual certification test runs and are **[TO BE CONFIRMED]**.
 
-The module is built with `qudo-pqc-lib` static-linked (`-DBUILD_SHARED_LIBS=OFF -DQUDO_PQC_MATH_ONLY=ON`), which is mandatory so the integrity HMAC covers the algorithm code in one `.text` region (`docs/design-errata.md` §4; ADR-0009). Processor algorithm accelerators visible in the module (e.g. ARMv8 SHA/`sha256_block_armv8`, NEON, and x86-64 AES-NI/AVX2 dispatch) are selected at runtime by CPU feature detection; whether any are claimed as tested PAA/PAI is **[TO BE CONFIRMED]**, and the per-OE symbol inventory differs by architecture (`docs/boundary-duplicate-hash-disclosure.md` §0, §4.2 item d).
+The module is built with `qudo-pqc-lib` static-linked (`-DBUILD_SHARED_LIBS=OFF -DQUDO_PQC_MATH_ONLY=ON`), which is mandatory so the integrity HMAC covers the algorithm code in one `.text` region. Processor algorithm accelerators visible in the module (e.g. ARMv8 SHA/`sha256_block_armv8`, NEON, and x86-64 AES-NI/AVX2 dispatch) are selected at runtime by CPU feature detection; whether any are claimed as tested PAA/PAI is **[TO BE CONFIRMED]**, and the per-OE symbol inventory differs by architecture (`docs/boundary-duplicate-hash-disclosure.md` §0, §4.2 item d).
 
 ## 6.3 Operational-testing evidence status (Sprint 4 Story 4.2)
 
@@ -1295,7 +1294,7 @@ The Cryptographic Module Validation Program makes **no claim** as to the correct
 
 **Applicability: Not applicable.**
 
-The QudoSSL cryptographic module is a **software** cryptographic module. It is defined by the FIPS provider `fips.so` (Linux) / `fips.dylib` (macOS) / `fips.dll` (Windows), which is not renamed from the upstream OpenSSL 3.5.7 filename (ADR-0006), together with the delegated PQC math statically linked into it. The module executes on the modifiable operational environment of a general-purpose computer and does not include, embody, or claim any physical enclosure, tamper-evidence, tamper-response, environmental failure protection, or environmental failure testing mechanisms.
+The QudoSSL cryptographic module is a **software** cryptographic module. It is defined by the FIPS provider `fips.so` (Linux) / `fips.dylib` (macOS) / `fips.dll` (Windows), which is not renamed from the upstream OpenSSL 3.5.7 filename, together with the delegated PQC math statically linked into it. The module executes on the modifiable operational environment of a general-purpose computer and does not include, embody, or claim any physical enclosure, tamper-evidence, tamper-response, environmental failure protection, or environmental failure testing mechanisms.
 
 The physical security requirements of **ISO/IEC 19790:2012 Section 7.7 (FIPS 140-3 Area 7)** therefore **do not apply** to this module. The physical security of the host platform on which the module runs is outside the cryptographic boundary and is the responsibility of the operator.
 
@@ -1357,8 +1356,8 @@ inside the boundary** — the POST, the CASTs, the pairwise consistency tests
 (PCTs), the integrity HMAC, the approved DRBG, the AES/SHA/HMAC primitives, the
 approved-mode state machine and the approval indicator. qudo-pqc-lib supplies only
 the ML-KEM (FIPS 203) and ML-DSA (FIPS 204) algorithm **math**, delegated at the
-crypto-core layer (ADR-0005). SLH-DSA (FIPS 205) is **not** delegated; it is
-OpenSSL's own implementation (ADR-0010).
+crypto-core layer. SLH-DSA (FIPS 205) is **not** delegated; it is
+OpenSSL's own implementation.
 
 This boundary rule is verified by measurement, not by design assertion. On the
 macOS arm64 artifact (`openssl/providers/fips.dylib`, 2,011,976 bytes):
@@ -1386,7 +1385,7 @@ not yet been repeated on Linux x86-64, Linux aarch64, or Windows x64** — see �
 
 **The module's approved RBG is OpenSSL's SP 800-90A DRBG, not qudo's.** qudo-pqc-lib
 is compiled with `-DQUDO_PQC_MATH_ONLY=ON`, in which its own CTR-DRBG, entropy and
-RNG self-test are not compiled at all (ADR-0009 Resolution; `docs/design-errata.md:70-84`).
+RNG self-test are not compiled at all (Resolution).
 Measured: OpenSSL's DRBG is present in the module and qudo's is absent —
 `nm -a openssl/providers/fips.dylib` shows `_drbg_ctr_*` and `_drbg_hash_*`
 symbols (including `_drbg_ctr_instantiate`, `_drbg_ctr_generate`,
@@ -1397,7 +1396,7 @@ Randomness enters the delegated PQC math **as a seed argument**, never through a
 qudo-registered callback: the delegation layer calls only the *seeded /
 derandomised* entry points — `QUDO_KEM_keypair_from_seed`, `QUDO_KEM_encaps_derand`,
 `QUDO_KEM_decaps`, `QUDO_MLDSA_keypair_internal`, `QUDO_MLDSA_sign_internal` —
-supplying bytes drawn from OpenSSL's approved DRBG (ADR-0009 "The rule this
+supplying bytes drawn from OpenSSL's approved DRBG ("The rule this
 creates", `:136-152`). Calling the plain `keypair()` variants would draw from
 qudo's own platform entropy and is deliberately avoided.
 
@@ -1426,7 +1425,7 @@ the delegated entry points (the delegated ML-DSA PCT is at
 `openssl/crypto/ml_dsa/ml_dsa_key.c:398`); qudo's own zeroize-on-PCT-failure
 blocks are inside `#ifdef QUDO_FIPS_MODULE` and are **not compiled** in the
 math-only build, which is correct under the boundary rule — OpenSSL owns the PCT
-(`docs/zeroization-analysis.md:144-155`, ADR-0009).
+(`docs/zeroization-analysis.md:144-155`).
 
 ## 9.4 SSP establishment
 
@@ -1515,7 +1514,7 @@ handles (`docs/zeroization-analysis.md:135-142`).
 ### 9.7.3 Zeroization fixes made in Sprint 3
 
 Three zeroization defects were fixed this sprint, all in
-`openssl/crypto/ml_dsa/ml_dsa_key.c` (inside the delegation seam ADR-0005 permits
+`openssl/crypto/ml_dsa/ml_dsa_key.c` (inside the delegation seam permits
 editing), landed together in commit `dd192a5`
 (`docs/zeroization-analysis.md:209-345`):
 
@@ -1597,7 +1596,7 @@ causes zeroization.
 |---|---|---|---|---|---|
 | C1 | Approved DRBG internal state (CTR / Hash / HMAC DRBG) | CSP | seeded from the entropy source | OpenSSL's own DRBG uninstantiate / free (`_drbg_ctr_free`, `_drbg_ctr_verify_zeroization` present in module) | **OpenSSL's SP 800-90A DRBG**, not qudo's (§9.2); covered by OpenSSL's FIPS submission evidence |
 | C2 | Classical CSPs — RSA/EC private keys, TLS traffic keys | CSP | OpenSSL keygen / DRBG | OpenSSL's own zeroization | unmodified upstream OpenSSL; covered by OpenSSL's FIPS submission evidence |
-| C3 | SLH-DSA (FIPS 205) private keys and seeds | CSP | OpenSSL keygen / DRBG | OpenSSL's own zeroization | **[TO BE CONFIRMED — not yet inventoried]** — SLH-DSA is OpenSSL's own implementation (ADR-0010), not delegated; `openssl/crypto/slh_dsa/` was not audited in this pass and is required before the CSP register is complete (`docs/zeroization-analysis.md:38-41,718-721`) |
+| C3 | SLH-DSA (FIPS 205) private keys and seeds | CSP | OpenSSL keygen / DRBG | OpenSSL's own zeroization | **[TO BE CONFIRMED — not yet inventoried]** — SLH-DSA is OpenSSL's own implementation, not delegated; `openssl/crypto/slh_dsa/` was not audited in this pass and is required before the CSP register is complete (`docs/zeroization-analysis.md:38-41,718-721`) |
 | C4 | Integrity HMAC key / self-test KAT data | CSP/PSP | build-embedded | n/a (static) | OpenSSL's; single integrity mechanism over the whole module image |
 
 ## 9.9 Out-of-boundary residual-memory disclosure (complete picture for the lab)
@@ -1605,7 +1604,7 @@ causes zeroization.
 For completeness, four upstream OpenSSL 3.5.7 residual-memory zeroization gaps in
 PQC private-key handling were found and are **deliberately not patched locally**,
 because the affected files are in `openssl/providers/implementations/`, which
-ADR-0005 keeps byte-identical to upstream and which the `upstream-parity` CI gate
+ keeps byte-identical to upstream and which the `upstream-parity` CI gate
 forbids editing. **Every one of these is outside the FIPS module boundary** and is
 being reported upstream (`docs/upstream-defects.md`).
 
@@ -1684,8 +1683,8 @@ tests use, the FIPS state machine, the error state, and the approval indicator;
 qudo-pqc-lib supplies PQC algorithm **math only**. The design's Epic 4/5 plan to
 "bridge qudo self-test events, extend `ST_ID_*` per algorithm, wire deferred
 CASTs, migrate KATs" has **no subject** under crypto-layer delegation and was
-removed (`docs/design-errata.md` §1, Part V Epics 4–5, per Decision Log D2;
-ADR-0005).
+removed (Part V Epics 4–5, per Decision Log D2;
+).
 
 The self-test code lives entirely in the FIPS module's own sources:
 
@@ -1737,7 +1736,7 @@ before any operational algorithm use.
 
 The FIPS module file whose integrity is protected is **`fips.so`** (Linux) /
 **`fips.dylib`** (macOS) / **`fips.dll`** (Windows) — it is **not** renamed
-(ADR-0006; `docs/design-errata.md` §1, §23.1).
+.
 
 ## 10.3 Conditional Algorithm Self-Tests (CASTs)
 
@@ -1758,7 +1757,7 @@ resolve to OpenSSL's implementation inside the FIPS provider.
 | Cipher — `KAT_Cipher` | AES-256-GCM (enc+dec), AES-128-ECB (dec), Triple-DES EDE3-ECB (dec) | OpenSSL | `self_test_data.inc:284-318` |
 | Signature — `KAT_Signature` | RSA (SHA-256), ECDSA P-curve (SHA-256), ECDSA binary-curve (SHA-256), Ed448, Ed25519, DSA (verify-only) | OpenSSL | `self_test_data.inc:2987-3051` |
 | Signature — `KAT_Signature` | **ML-DSA-65** sign+verify KAT | **Delegated** to qudo-pqc-lib (FIPS 204 math) | `self_test_data.inc:3053-3066` |
-| Signature — `KAT_Signature` | **SLH-DSA-SHA2-128f**, **SLH-DSA-SHAKE-128f** sign KAT | **OpenSSL-native** (not delegated, ADR-0010) | `self_test_data.inc:3067-3096` |
+| Signature — `KAT_Signature` | **SLH-DSA-SHA2-128f**, **SLH-DSA-SHAKE-128f** sign KAT | **OpenSSL-native** (not delegated) | `self_test_data.inc:3067-3096` |
 | KEM — `KAT_KEM` | **ML-KEM-512**: encapsulation, decapsulation (non-rejection), decapsulation (implicit-rejection) | **Delegated** to qudo-pqc-lib (FIPS 203 math) | `self_test_kats.c:657-810` (IG 10.3.A res. 14); vectors `self_test_data.inc:3466-3476` |
 | Asymmetric keygen — `KAT_AsymmetricKeyGeneration` | **ML-KEM-512**, **ML-DSA-65** (delegated); **SLH-DSA-SHA2-128f** (native) deterministic keygen KATs | ML-KEM/ML-DSA delegated; SLH-DSA OpenSSL | `self_test_kats.c:604-652`; `self_test_data.inc:3480-3509` |
 | Asymmetric cipher — `KAT_AsymmetricCipher` | RSA encrypt, RSA decrypt (×2) | OpenSSL | `self_test_data.inc:3512-3540` |
@@ -1810,7 +1809,7 @@ provider (`docs/acvp-status.md` §1.4, `docs/boundary-duplicate-hash-disclosure.
 §3.2). A defect in qudo's math would fail the ML-KEM/ML-DSA CAST at load.
 
 SLH-DSA's CAST, by contrast, exercises **OpenSSL's own** SLH-DSA
-implementation, because SLH-DSA is not delegated (ADR-0010): `crypto/slh_dsa/`
+implementation, because SLH-DSA is not delegated: `crypto/slh_dsa/`
 is byte-identical to upstream `openssl-3.5.7` and the module links zero qudo
 SLH-DSA symbols (`docs/boundary-duplicate-hash-disclosure.md` §1.4, §5).
 
@@ -1857,7 +1856,7 @@ PCT invocation and failure handling:
   zeroization after uninstantiate (`self_test_kats.c:386`, `:1109-1112`).
 - **Approved-mode / indicator:** the approval indicator is OpenSSL's
   (`providers/fips/fipsindicator.c`); there is no qudo indicator to mirror
-  (`docs/design-errata.md` §4 — `qudo_fips_ind_t` does not exist under the
+ ( — `qudo_fips_ind_t` does not exist under the
   math-only build).
 
 ## 10.6 On-demand self-tests
@@ -1983,7 +1982,7 @@ The module is assembled from two version-pinned upstream source trees vendored a
 | `openssl/` (FIPS provider, all classical crypto, SLH-DSA, POST/CAST/PCT/integrity/DRBG, state machine, indicator) | github.com/openssl/openssl | tag `openssl-3.5.7` | `8cf17aaeb4599f8af87fefd810b5b5fee90fe69e` |
 | `qudo-pqc-lib/` (ML-KEM and ML-DSA math only) | ZenVInnovations/qudo-pqc-lib | `main` | `73e5499b4b90d8e5aab2fc3d52516af901c9d8e3` |
 
-The OpenSSL component is pinned to a **released tag** rather than a branch so that one repository resolves to one SHA, which is a precondition for a reproducible certificate SHA (ADR-0004; `docs/subtree-pins.md`). The measured base library reports `OpenSSL 3.5.7 9 Jun 2026` (`docs/interop-report.md §2`).
+The OpenSSL component is pinned to a **released tag** rather than a branch so that one repository resolves to one SHA, which is a precondition for a reproducible certificate SHA (`docs/subtree-pins.md`). The measured base library reports `OpenSSL 3.5.7 9 Jun 2026` (`docs/interop-report.md §2`).
 
 **Open configuration-management item — module version identifier is [TO BE CONFIRMED].** The `qudo-pqc-lib` subtree is pinned to a **branch head** (`73e5499b`, the merge commit of ZenVInnovations/qudo-pqc-lib#9 that adds the `QUDO_PQC_MATH_ONLY` build mode), and **no release tag exists** for it yet. A moving ref cannot support a reproducible cert SHA on a release branch; `docs/subtree-pins.md` records that a named release must be cut on `73e5499b` and re-pinned to the tag before the cert branch is frozen. The vendor library declares `QUDO_PQC_VERSION_STRING "1.0.0"`, but `docs/interop-report.md` (Open Item 4) documents that at least two distinct revisions of `qudo_pqc.h` carry the identical `1.0.0` string, so the version string alone does **not** establish traceability. The overall **QudoSSL module version identifier** presented on the certificate is therefore **[TO BE CONFIRMED]** and must be a value that binds uniquely to the two subtree SHAs above.
 
@@ -1991,13 +1990,13 @@ The OpenSSL component is pinned to a **released tag** rather than a branch so th
 
 - **Delivery mechanism: [TO BE CONFIRMED].** The mechanism by which source and/or built artifacts are delivered to the operator (e.g. signed source tarball, signed installer, package repository) has not been fixed and must be supplied by the vendor.
 - **Vendor name and contact: [TO BE CONFIRMED].**
-- **Integrity of delivery.** Independent of the delivery channel, the reproducible-build kit (§11.4) lets a recipient regenerate the module bytes from the pinned source and byte-compare them against what was delivered, so delivery integrity can be *verified by the recipient* rather than merely asserted (`docs/reproducibility.md`). The module's own runtime integrity is enforced by OpenSSL's approved HMAC-SHA-256 integrity test over `fips.so`, which covers the delegated PQC math because that math is statically linked into the module (see the Self-Tests section; ADR-0009).
+- **Integrity of delivery.** Independent of the delivery channel, the reproducible-build kit (§11.4) lets a recipient regenerate the module bytes from the pinned source and byte-compare them against what was delivered, so delivery integrity can be *verified by the recipient* rather than merely asserted (`docs/reproducibility.md`). The module's own runtime integrity is enforced by OpenSSL's approved HMAC-SHA-256 integrity test over `fips.so`, which covers the delegated PQC math because that math is statically linked into the module (see the Self-Tests section;).
 
 ### 11.3 Secure installation and operation
 
-- The module installs and loads under its **upstream filename** `fips.so`/`fips.dylib`/`fips.dll`; there is **no rename** to `qudo-fips.so` (ADR-0006). Because the installed path (`<libdir>/ossl-modules/fips.so`) is now filename-identical to a stock OpenSSL FIPS provider, ADR-0006 records an install-path collision check as a required step on any host that may also carry a system OpenSSL FIPS provider — this must be reflected in operator guidance.
-- The module is placed into the approved mode of operation using OpenSSL's standard `fipsinstall` process, which runs the power-on self-tests and writes the module's configuration/integrity state. Story 6.4/6.5's renamed-path handling is deleted / a no-op precisely because the default `fipsinstall` module path already points at `fips.so` (ADR-0006).
-- **`BUILD_SHARED_LIBS=OFF` is mandatory** for the qudo-pqc-lib archive so that the algorithm code lies in one `.text` region covered by the integrity HMAC (`docs/design-errata.md §4`; design §12.3 RULE). The library is built `-DBUILD_SHARED_LIBS=OFF -DQUDO_PQC_MATH_ONLY=ON` (ADR-0009), which is the configuration in which the module's exported symbol table contains PQC math only and zero qudo FIPS-infrastructure symbols (verified in §12.1).
+- The module installs and loads under its **upstream filename** `fips.so`/`fips.dylib`/`fips.dll`; there is **no rename** to `qudo-fips.so`. Because the installed path (`<libdir>/ossl-modules/fips.so`) is now filename-identical to a stock OpenSSL FIPS provider, records an install-path collision check as a required step on any host that may also carry a system OpenSSL FIPS provider — this must be reflected in operator guidance.
+- The module is placed into the approved mode of operation using OpenSSL's standard `fipsinstall` process, which runs the power-on self-tests and writes the module's configuration/integrity state. Story 6.4/6.5's renamed-path handling is deleted / a no-op precisely because the default `fipsinstall` module path already points at `fips.so`.
+- **`BUILD_SHARED_LIBS=OFF` is mandatory** for the qudo-pqc-lib archive so that the algorithm code lies in one `.text` region covered by the integrity HMAC. The library is built `-DBUILD_SHARED_LIBS=OFF -DQUDO_PQC_MATH_ONLY=ON`, which is the configuration in which the module's exported symbol table contains PQC math only and zero qudo FIPS-infrastructure symbols (verified in §12.1).
 
 ### 11.4 Reproducible build
 
@@ -2016,15 +2015,15 @@ to "CI-verified" in the submission until that evidence is captured.
 
 Two life-cycle-relevant caveats a lab must be told:
 
-1. **The design's prescribed macOS flag does not work.** Design §12.3/§22.1 specify `-Wl,-no_uuid`; stripping `LC_UUID` from `libcrypto.dylib` makes the macOS linker refuse to link `providers/`, `engines/` and `fuzz/` against it and breaks the build. Determinism on macOS is achieved instead by `ZERO_AR_DATE=1` plus ld64's content-derived `LC_UUID` (`docs/reproducibility.md`; `docs/design-errata.md §1`). The Security Policy's build description must reflect this corrected mechanism, not the frozen design text.
+1. **The design's prescribed macOS flag does not work.** Design §12.3/§22.1 specify `-Wl,-no_uuid`; stripping `LC_UUID` from `libcrypto.dylib` makes the macOS linker refuse to link `providers/`, `engines/` and `fuzz/` against it and breaks the build. Determinism on macOS is achieved instead by `ZERO_AR_DATE=1` plus ld64's content-derived `LC_UUID` (`docs/reproducibility.md`). The Security Policy's build description must reflect this corrected mechanism, not the frozen design text.
 2. **Windows reproducibility is not yet demonstrated.** `/Brepro` is a starting point only; MSVC does not honour `SOURCE_DATE_EPOCH`, and PDB paths, the debug directory, and `lib.exe` archive member ordering/timestamps remain to be checked. A PowerShell equivalent of `verify-reproducible.sh` and a green two-build comparison are prerequisites before the Windows x64 OE is submitted (`docs/reproducibility.md`).
 
 Scope note: reproducibility was demonstrated in Sprint 1 for `libqudo-pqc.a`, `libcrypto` and `libssl`; the FIPS module `fips.so` joins the byte-for-byte comparison once the archive is linked into it, with the full three-artifact check across all OEs owned by Story 6.7 (`docs/reproducibility.md §Scope`). **[TO BE CONFIRMED: exact tested-platform build strings / toolchain versions per OE.]**
 
 ### 11.5 Administrator (Crypto Officer) guidance
 
-- A **QudoSSL Crypto Officer Guide** is a required guidance deliverable for the module. Its existence, contents, and story/deliverable reference are **[TO BE CONFIRMED]** (referenced as Story 4.4 in the task framing; note that `docs/design-errata.md §1` records the Sprint-planning Stories 4.2–4.4 as removed under delegation, so the guide's tracking reference must be re-confirmed against the current plan). At minimum it must carry: the approved-mode installation procedure (`fipsinstall`), the install-path collision check of §11.3, the approved algorithm list and the approval-indicator semantics, and SSP/zeroization handling per the module's Sensitive Security Parameter section (`docs/zeroization-analysis.md`).
-- **A pre-existing vendor guide does not govern this module.** `qudo-pqc-lib/docs/fips/CRYPTO_OFFICER_GUIDANCE.md` exists in the vendored subtree, but it **predates delegation and describes qudo-pqc-lib as a standalone FIPS module**. Under the QudoSSL boundary rule, qudo-pqc-lib supplies **algorithm math only** and OpenSSL supplies every FIPS service (ADR-0009; the boundary is verified in §12.1); the vendor guide's operational, self-test and role guidance therefore **does not carry over** and must not be delivered as QudoSSL crypto-officer guidance. This mirrors the non-governing status of the vendor side-channel document noted in §12.
+- A **QudoSSL Crypto Officer Guide** is a required guidance deliverable for the module. Its existence, contents, and story/deliverable reference are **[TO BE CONFIRMED]** (referenced as Story 4.4 in the task framing; note that` records the Sprint-planning Stories 4.2–4.4 as removed under delegation, so the guide's tracking reference must be re-confirmed against the current plan). At minimum it must carry: the approved-mode installation procedure (`fipsinstall`), the install-path collision check of §11.3, the approved algorithm list and the approval-indicator semantics, and SSP/zeroization handling per the module's Sensitive Security Parameter section (`docs/zeroization-analysis.md`).
+- **A pre-existing vendor guide does not govern this module.** `qudo-pqc-lib/docs/fips/CRYPTO_OFFICER_GUIDANCE.md` exists in the vendored subtree, but it **predates delegation and describes qudo-pqc-lib as a standalone FIPS module**. Under the QudoSSL boundary rule, qudo-pqc-lib supplies **algorithm math only** and OpenSSL supplies every FIPS service (the boundary is verified in §12.1); the vendor guide's operational, self-test and role guidance therefore **does not carry over** and must not be delivered as QudoSSL crypto-officer guidance. This mirrors the non-governing status of the vendor side-channel document noted in §12.
 
 ### 11.6 End-of-life / sunset
 
@@ -2041,10 +2040,10 @@ Secure sanitization and end-of-life procedures for the module and its SSPs: **[T
 ### 12.1 Scope of the claim, and what is inside the boundary
 
 - **Timing channels only.** Power and EM channels are explicitly out of scope (`docs/side-channel-analysis.md §Scope`).
-- **Delegated families only.** ML-KEM (FIPS 203) and ML-DSA (FIPS 204) math is delegated to qudo-pqc-lib (ADR-0005). **SLH-DSA (FIPS 205) is not delegated** — it is OpenSSL 3.5.7's own, byte-identical implementation (ADR-0010) — so its side-channel posture is inherited from upstream OpenSSL and is not analysed as a QudoSSL "other attack" claim here.
+- **Delegated families only.** ML-KEM (FIPS 203) and ML-DSA (FIPS 204) math is delegated to qudo-pqc-lib. **SLH-DSA (FIPS 205) is not delegated** — it is OpenSSL 3.5.7's own, byte-identical implementation — so its side-channel posture is inherited from upstream OpenSSL and is not analysed as a QudoSSL "other attack" claim here.
 - **What is actually in the module boundary.** The claim is scoped to the code that is present. Measured on the built module `openssl/providers/fips.dylib` for this policy:
   - `nm openssl/providers/fips.dylib | awk '$2=="T" && $3 ~ /^_QUDO_/'` → **123** distinct exported PQC-math symbols (**42** `QUDO_KEM_*`, **81** `QUDO_MLDSA_*`, **zero** `QUDO_SLHDSA_*` — consistent with SLH-DSA not being delegated).
-  - `nm openssl/providers/fips.dylib | grep -iE 'qudo_fips|qudo_ctrdrbg|qudo_pqc_post|qudo_audit|qudo_pqc_init|qudo_pqc_pct|qudo_pqc_integrity|qudo_embedded_hmac|qudo_fips_rand'` → **no matches** (grep exit 1). No qudo FIPS-infrastructure symbol is present. This confirms the boundary rule — OpenSSL supplies every FIPS service; qudo-pqc-lib supplies math only (ADR-0009) — and bounds what the timing-channel analysis must cover.
+ - `nm openssl/providers/fips.dylib | grep -iE 'qudo_fips|qudo_ctrdrbg|qudo_pqc_post|qudo_audit|qudo_pqc_init|qudo_pqc_pct|qudo_pqc_integrity|qudo_embedded_hmac|qudo_fips_rand'` → **no matches** (grep exit 1). No qudo FIPS-infrastructure symbol is present. This confirms the boundary rule — OpenSSL supplies every FIPS service; qudo-pqc-lib supplies math only — and bounds what the timing-channel analysis must cover.
 
 ### 12.2 ML-KEM decapsulation — the countermeasure and why it matters (REVIEWED)
 
@@ -2057,7 +2056,7 @@ A line-by-line source review of the complete **delegated ML-KEM decapsulation pa
 - The constant-time primitives are hardened beyond the FIPS 203 reference: `mlk_ct_memcmp` (`verify.h:326–357`) carries a second accumulator and a `volatile` compiler barrier (`verify.c:14`) specifically to stop an optimiser reintroducing an early exit; `mlk_ct_cmov_zero` is a fixed-length per-byte select loop.
 - The only comparison in the entire ML-KEM source tree is the constant-time one (**MEASURED** grep, `docs/side-channel-analysis.md §2.2`); the single genuine branch-on-buffer-content, in `mlk_kem_check_sk` (`kem.c:396`), is on **public** data and the source proves it by explicitly declassifying exactly those regions before hashing (`kem.c:95–98`).
 - CPU-feature dispatch (`mlkem_wrapper.c:596–669`) branches only on `mlk_cpu_has_extension(...)`, fixed at init — never on key or ciphertext bytes.
-- The qudo-pqc-lib FIPS gate macros in the wrapper compile to `((void)0)` because QudoSSL builds without `QUDO_FIPS_MODULE` (math-only), so no FIPS-gate branch exists on the shipped path (`mlkem_wrapper.c:24,57–59`; ADR-0009).
+- The qudo-pqc-lib FIPS gate macros in the wrapper compile to `((void)0)` because QudoSSL builds without `QUDO_FIPS_MODULE` (math-only), so no FIPS-gate branch exists on the shipped path (`mlkem_wrapper.c:24,57–59`;).
 
 **This is the entire good news, and it is source review, not measurement.**
 
@@ -2102,19 +2101,19 @@ ML-DSA signing performs variable-iteration rejection sampling whose iteration co
 - **NIST SP 800-140** and its annex documents, in particular **SP 800-140F** (*CMVP Approved Non-Invasive Attack Mitigation Test Metrics* — empty approved list as of this writing; §8), and SP 800-140B/C/D (SSP, approved security functions, approved SSP generation/establishment).
 - **NIST FIPS 203**, *Module-Lattice-Based Key-Encapsulation Mechanism Standard* (ML-KEM).
 - **NIST FIPS 204**, *Module-Lattice-Based Digital Signature Standard* (ML-DSA).
-- **NIST FIPS 205**, *Stateless Hash-Based Digital Signature Standard* (SLH-DSA; served by OpenSSL, not delegated — ADR-0010).
-- **NIST SP 800-90A Rev. 1**, *Recommendation for Random Number Generation Using Deterministic Random Bit Generators* (approved DRBG supplying seeds to the delegated PQC entry points — ADR-0009).
+- **NIST FIPS 205**, *Stateless Hash-Based Digital Signature Standard* (SLH-DSA; served by OpenSSL, not delegated —).
+- **NIST SP 800-90A Rev. 1**, *Recommendation for Random Number Generation Using Deterministic Random Bit Generators* (approved DRBG supplying seeds to the delegated PQC entry points —).
 - **CMVP FIPS 140-3 Implementation Guidance (IG)** — side-channel / constant-time guidance cited as **IG D.E** in `docs/side-channel-analysis.md`.
 - **CMVP/CAVP certificate numbers: [TO BE CONFIRMED].**
 
 ### Internal decision records and evidence documents
-- `design/QudoSSL_Design.docx` v1.0 — frozen baseline (superseded in the sections listed by `docs/design-errata.md`; never draft from a superseded section).
-- `docs/design-errata.md` — authoritative delta between the frozen design and the decisions in force.
-- **ADR-0004** — OpenSSL baseline pinned to tag `openssl-3.5.7`.
-- **ADR-0005** — PQC integration by crypto-layer delegation (ML-KEM, ML-DSA).
-- **ADR-0006** — FIPS module ships as `fips.so`, not renamed.
-- **ADR-0009** — qudo-pqc-lib consumed as `QUDO_PQC_MATH_ONLY` static build; boundary = math only (Correction section).
-- **ADR-0010** — SLH-DSA is not delegated; OpenSSL's implementation is used (provisional).
+- `design/QudoSSL_Design.docx` v1.0 — frozen baseline (superseded in the sections listed by; never draft from a superseded section).
+-— authoritative delta between the frozen design and the decisions in force.
+- **** — OpenSSL baseline pinned to tag `openssl-3.5.7`.
+- **** — PQC integration by crypto-layer delegation (ML-KEM, ML-DSA).
+- **** — FIPS module ships as `fips.so`, not renamed.
+- **** — qudo-pqc-lib consumed as `QUDO_PQC_MATH_ONLY` static build; boundary = math only (Correction section).
+- **** — SLH-DSA is not delegated; OpenSSL's implementation is used (provisional).
 - `docs/subtree-pins.md` — subtree pins and the untagged-release open item (§11.1).
 - `docs/reproducibility.md` — reproducible-build mechanisms and per-OE status (§11.4).
 - `docs/side-channel-analysis.md` — constant-time posture, the measurement gap, and the deferred CT-poisoning item (§12).
@@ -2155,7 +2154,7 @@ in addition to the [TO BE CONFIRMED] register at the top:
 6. **Numbering axes:** document sections use the 12-section CMVP template; the §1
    level table uses the 11 ISO requirement areas. The §1.3 note explains the
    mapping. Confirm this matches the current CMVP SP template revision.
-7. **SLH-DSA CSPs** (§9): SLH-DSA is OpenSSL-native (ADR-0010); confirm its CSPs
+7. **SLH-DSA CSPs** (§9): SLH-DSA is OpenSSL-native; confirm its CSPs
    are represented alongside the delegated ML-KEM/ML-DSA SSPs.
 8. This appendix, and the top "DRAFT v0.1" banner, are to be removed before the
    submission package is assembled.

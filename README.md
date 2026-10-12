@@ -30,11 +30,11 @@ plain `git clone` gets everything — no `--recursive`.
 - **`fips.so`** — the FIPS 140-3 provider module (the **QudoSSL FIPS Provider**).
   Classical primitives (AES, SHA-2/3, HMAC, DRBG, RSA, ECDSA, EdDSA) **and
   SLH-DSA** come from upstream OpenSSL; only **ML-KEM and ML-DSA** are delegated
-  to `libqudo-pqc.a`, statically linked (crypto-layer delegation, ADR-0005;
-  SLH-DSA stays upstream per ADR-0010).
+ to `libqudo-pqc.a`, statically linked (crypto-layer delegation,
+ SLH-DSA stays upstream).
 - **`qudossl`** — the CLI. Functionally unchanged from upstream's `openssl`,
-  and installed alongside an `openssl` symlink so existing scripts keep working
-  (ADR-0013). Applications continue to fetch with property `"fips=yes"`.
+  and installed alongside an `openssl` symlink so existing scripts keep working.
+  Applications continue to fetch with property `"fips=yes"`.
 
 ## Supported platforms
 
@@ -77,7 +77,7 @@ esac
 > and macOS. On Windows build with `build\build.ps1` from a VS 2022 developer
 > prompt; the verification and test sections still apply, with `fips.dll`.
 > Note that the `qudossl` CLI wrapper is currently a shell script and is not
-> installed on Windows — see ADR-0013.
+> installed on Windows —.
 
 ### 1. Choose a prefix
 
@@ -98,7 +98,7 @@ unset OPENSSL_CONF OPENSSL_MODULES
 
 > `/opt/qudossl` belongs to QudoSSL exclusively. The free **Qudo Provider** is a
 > plugin and installs into your existing OpenSSL's `ossl-modules/` directory —
-> never here. See ADR-0013; the two have been confused before.
+> never here. the two have been confused before.
 
 ### 2. Build
 
@@ -459,10 +459,9 @@ make TARGET=linux-glibc USE_OPENSSL=1 \
 
 ## Documentation
 
-- `docs/design-errata.md` — the authoritative section-by-section delta between
+-— the authoritative section-by-section delta between
   the frozen design and the decisions in force. Read before implementing from
   any design section.
-- `docs/adr/` — architecture decision records
 - `docs/branching.md` — branch model and cert-branch rules
 - `docs/reproducibility.md`, `docs/subtree-pins.md` — reproducible-build notes
   and the pinned subtree SHAs

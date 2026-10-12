@@ -19,7 +19,7 @@ git log --oneline -1 -- qudo-pqc-lib
 
 **`openssl-3.5.7`** — a released tag, not the `openssl-3.5` branch the design's
 §4.2 example uses. A branch is a moving target and cannot support a reproducible
-cert SHA. See ADR-0004.
+cert SHA.
 
 **qudo-pqc-lib `v1.0.0`** (`505326e`) — a released tag, not a branch head, so
 it can support a reproducible cert SHA. It carries:
@@ -27,7 +27,7 @@ it can support a reproducible cert SHA. It carries:
 - **`QUDO_PQC_MATH_ONLY`** (qudo-pqc-lib#9) — keeps qudo's own POST, PCT,
   integrity check, CTR-DRBG, AES and HMAC out of the archive. Without it those
   are linked into `fips.so` alongside OpenSSL's and ML-KEM cannot be
-  constructed at all. See ADR-0009.
+ constructed at all.
 - **Audit K2** (qudo-pqc-lib#10) — no platform entropy source is compiled in
   under math-only, so `getentropy` / `BCryptGenRandom` / `arc4random` cannot
   enter the FIPS boundary. Measured before the fix: `fips.so` on Linux carried

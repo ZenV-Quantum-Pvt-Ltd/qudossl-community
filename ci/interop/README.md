@@ -19,7 +19,7 @@ and nothing else. BoringSSL and AWS-LC — the durable peers Story 3.2's exit ga
 requires — each need a full C library build; `oqs-provider` is retained in-tree
 but its submodule is not initialized and running it inside our own OpenSSL would
 not be independent. Go is therefore the **provisional first** independent peer,
-not the permanent answer. See ADR-0012.
+not the permanent answer.
 
 The Go peer is **test-only and strictly optional**:
 

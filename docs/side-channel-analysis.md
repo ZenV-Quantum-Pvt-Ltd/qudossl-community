@@ -5,8 +5,8 @@ Sprint 3, Story 3.4. Prepared for CMVP lab pre-engagement.
 ## Summary
 
 QudoSSL delegates ML-KEM and ML-DSA math to qudo-pqc-lib under `QUDO_PQC_DELEGATE`
-([ADR-0005](adr/ADR-0005-crypto-layer-delegation.md)); SLH-DSA is not delegated
-([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)) and is out of scope here. A line-by-line source
+([](adr/-crypto-layer-delegation.md)); SLH-DSA is not delegated
+([](adr/-slh-dsa-stays-upstream.md)) and is out of scope here. A line-by-line source
 review of the complete delegated ML-KEM decapsulation path — from
 `openssl/crypto/ml_kem/ml_kem.c:2490` down through the qudo-pqc-lib wrapper into
 mlkem-native's `mlk_kem_dec` — found **no branch, no memory index, and no
@@ -36,7 +36,7 @@ instrumentation that any future constant-time measurement would depend on. The
 delegated ML-DSA path is covered where it differs materially.
 
 **Out of scope.** SLH-DSA is served by unmodified upstream OpenSSL
-([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)) and is not analysed here.
+([](adr/-slh-dsa-stays-upstream.md)) and is not analysed here.
 Power and electromagnetic channels are not addressed; this is a timing-channel
 document only. `providers/implementations/` is untouched by design and contains
 no delegated math.
@@ -147,7 +147,7 @@ are defined as `((void)0)` unless `QUDO_FIPS_MODULE` is set
 (`mlkem_wrapper.c:24` opens the `#ifdef`, `:57-59` are the no-op definitions), and
 QudoSSL builds the library with `-DQUDO_PQC_MATH_ONLY=ON` and deliberately without
 `QUDO_FIPS_MODULE` (`build/build_libqudo_pqc.sh:85`; see
-[ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md)). The per-parameter-set
+[](adr/-qudo-pqc-standard-build.md)). The per-parameter-set
 dispatchers `qudo_mlkem_decaps_{512,768,1024}` branch only on
 `mlk_cpu_has_extension(...)`, i.e. on CPU features determined at init, never on
 key or ciphertext bytes.
@@ -670,7 +670,7 @@ two conflict, this document governs for the QudoSSL boundary.
 |---|---|---|
 | ML-DSA sign, 10,000 measurements, t = 0.688 | PASS | **Harness does not exist in the tree.** Cannot be reproduced. See below. |
 | ML-DSA verify, 10,000 measurements, t = 0.935 | PASS | **Harness does not exist in the tree.** Cannot be reproduced. |
-| SLH-DSA-SHA2-128f verify, 1,000, t = 1.28 | PASS | Reproducible, but **out of scope** — SLH-DSA is not delegated ([ADR-0010](adr/ADR-0010-slh-dsa-stays-upstream.md)). |
+| SLH-DSA-SHA2-128f verify, 1,000, t = 1.28 | PASS | Reproducible, but **out of scope** — SLH-DSA is not delegated ([](adr/-slh-dsa-stays-upstream.md)). |
 | SLH-DSA-SHAKE-128f verify, 1,000, t = 0.54 | PASS | Reproducible, but **out of scope** for the same reason. |
 | *(ML-KEM — absent)* | — | The delegated family this document is chiefly about **has no row at all**, and §6 of that document concedes it. |
 
@@ -696,7 +696,7 @@ and a lab reviewing the Operational Testing Report will ask for the harness.
 
 Three of Table 4's five design measures describe code, or a rationale for code,
 that does **not** carry into the QudoSSL boundary, because we build qudo-pqc-lib in
-math-only mode ([ADR-0009](adr/ADR-0009-qudo-pqc-standard-build.md);
+math-only mode ([](adr/-qudo-pqc-standard-build.md);
 `build/build_libqudo_pqc.sh:85`):
 
 | Table 4 row | Status in QudoSSL |
@@ -780,10 +780,10 @@ Ordered by what blocks what.
 
 ### Related documents
 
-- [ADR-0005 — crypto-layer delegation](adr/ADR-0005-crypto-layer-delegation.md)
-- [ADR-0009 — qudo-pqc math-only build](adr/ADR-0009-qudo-pqc-standard-build.md)
-- [ADR-0010 — SLH-DSA stays upstream](adr/ADR-0010-slh-dsa-stays-upstream.md)
-- [Design errata](design-errata.md)
+- [ — crypto-layer delegation](adr/-crypto-layer-delegation.md)
+- [ — qudo-pqc math-only build](adr/-qudo-pqc-standard-build.md)
+- [ — SLH-DSA stays upstream](adr/-slh-dsa-stays-upstream.md)
+- [Design errata]
 - [Subtree pins](subtree-pins.md)
 - [Reproducibility](reproducibility.md)
 - [qudo-pqc-lib vendor side-channel analysis](../qudo-pqc-lib/docs/security/SIDE_CHANNEL_ANALYSIS.md)

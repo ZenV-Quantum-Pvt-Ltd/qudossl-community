@@ -25,8 +25,7 @@
 #   that references ONLY caller-deterministic math entry points, and the gate
 #   fails if any forbidden symbol comes with it.
 #
-# CURRENT STATUS: FAILS. See docs/adr/ADR-0009 (Correction) and Sprint 2 Story
-# 2.9. Root cause is object-level link granularity — the deterministic entry
+# CURRENT STATUS: FAILS. Root cause is object-level link granularity — the deterministic entry
 # points share mlkem_wrapper.c.o with QUDO_KEM_init, so referencing any of them
 # drags in the RNG chain. Fix is upstream in qudo-pqc-lib.
 #
@@ -177,6 +176,7 @@ wrapper so the deterministic entry points do not share a translation unit with
 the FIPS machinery, or compile the FIPS infrastructure out entirely in the
 math-only configuration.
 
-See docs/adr/ADR-0009 (Correction), docs/design-errata.md §3, Sprint 2 Story 2.9.
+The duplicate implementations this gate detects are disclosed in
+docs/boundary-duplicate-hash-disclosure.md.
 EOF
 exit 1
